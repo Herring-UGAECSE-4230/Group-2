@@ -1,14 +1,15 @@
 #Imported wiring pi library
-import wiringPi
+import wiringpi
 
 #Setting up GPIO using wiringpi
-wiringpi.wiringPiSetupGpio(17)
-wiringpi.sodtToneCreate(17)
+wiringpi.wiringPiSetupGpio()
+wiringpi.softToneCreate(17)
 
 #second paramter is frequency
-wiringpi.softToneWrite(17, 100)
+wiringpi.softToneWrite(17, 10)
 
 
 while True:
     #empty while loop
-
+    print(" ")
+wiringpi.softToneWrite(17, 0)

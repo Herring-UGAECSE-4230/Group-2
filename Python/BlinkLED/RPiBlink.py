@@ -9,9 +9,9 @@ GPIO.setmode(GPIO.BCM)
 # Pin setup
 GPIO.setup(17, GPIO.OUT, initial=GPIO.LOW)
 
-# Main loop
+# Main square wave loop
 while True:
 	GPIO.output(17, GPIO.HIGH)
-	sleep(0.5)
+	sleep(.05)
 	GPIO.output(17, GPIO.LOW)
-	sleep(0.5)
+	sleep(.05)

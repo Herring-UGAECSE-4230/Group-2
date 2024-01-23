@@ -6,7 +6,7 @@ wiringpi.wiringPiSetupGpio()
 wiringpi.softToneCreate(17)
 
 # Second paramter is frequency
-wiringpi.softToneWrite(17, 100000)
+wiringpi.softToneWrite(17, 500)
 
 # Empty while loop
 while True:

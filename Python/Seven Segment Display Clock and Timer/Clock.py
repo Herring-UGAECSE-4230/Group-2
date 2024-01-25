@@ -1,3 +1,4 @@
 #imports for file
 import time
-import pigpio
+import RPi.GPIO as GPIO
+

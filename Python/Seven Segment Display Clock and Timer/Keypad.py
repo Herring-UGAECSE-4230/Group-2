@@ -21,20 +21,29 @@ GPIO.setup(21, GPIO.IN) #Blue Wire Y4
 
 #conditional implementation of keypad I thought it would be easiest this way
 def readKeypad(rowNum, char):
+    curVal = 0
     GPIO.output(rowNum, GPIO.HIGH)
     if GPIO.input(12) == 1:
         curVal = char[0]
+        print(curVal)
     if GPIO.input(16) == 1:
         curVal = char[1]
+        print(curVal)
     if GPIO.input(20) == 1:
         curVal = char[2]
+        print(curVal)
     if GPIO.input(21) ==1:
         curVal = char[3]
+        print(curVal)
     GPIO.output(rowNum, GPIO.LOW)
-    return curVal
+    
 
 while True:
     readKeypad(18,[1,2,3,'A'])
-    readKeypad(23,[1,2,3,'A'])
-    readKeypad(24,[1,2,3,'A'])
-    readKeypad(25,[1,2,3,'A'])
+    time.sleep(.01)
+    readKeypad(23,[4,5,6,'B'])
+    time.sleep(.01)
+    readKeypad(24,[7,8,9,'C'])
+    time.sleep(.01)
+    readKeypad(25,['*',0,'#','D'])
+    time.sleep(.01)

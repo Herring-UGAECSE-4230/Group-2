@@ -3,7 +3,7 @@ import pigpio
 
 # Selecting pi and setting frequency/duty cycle
 pi = pigpio.pi()
-pi.set_PWM_frequency(17, 500)
+pi.set_PWM_frequency(17, 20)
 pi.set_PWM_dutycycle(17, 114.75)
 
 # Empty the loop

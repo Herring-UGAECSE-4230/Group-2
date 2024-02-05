@@ -12,6 +12,6 @@ GPIO.setup(17, GPIO.OUT, initial=GPIO.LOW)
 # Main square wave loop
 while True:
 	GPIO.output(17, GPIO.HIGH)
-	sleep(0.01)
+	sleep(0.1)
 	GPIO.output(17, GPIO.LOW)
-	sleep(0.01)
+	sleep(0.1)

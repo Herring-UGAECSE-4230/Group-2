@@ -23,19 +23,19 @@ def readKeypad(rowNum, char):
     GPIO.output(rowNum, GPIO.HIGH)
     if GPIO.input(12) == 1:
         curVal = char[0]
-        print(curVal)
+        return curVal
         time.sleep(0.1)
     if GPIO.input(16) == 1:
         curVal = char[1]
-        print(curVal)
+        return curVal
         time.sleep(0.1)
     if GPIO.input(20) == 1:
         curVal = char[2]
-        print(curVal)
+        return curVal
         time.sleep(0.1)
     if GPIO.input(21) ==1:
         curVal = char[3]
-        print(curVal)
+        return curVal
         time.sleep(0.1)
     GPIO.output(rowNum, GPIO.LOW)
     

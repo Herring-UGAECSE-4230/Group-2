@@ -37,6 +37,8 @@ GPIO.setup(F, GPIO.OUT) #F
 GPIO.setup(A, GPIO.OUT) #A
 GPIO.setup(B, GPIO.OUT) #B
 
+enable = True
+
 # Resets SSD Display
 def resetGPIO():
     GPIO.output(Clk, GPIO.HIGH)
@@ -45,6 +47,7 @@ def resetGPIO():
     
 # Conditional implementation of keypad
 def readKeypad(rowNum, char):
+    
     curVal = 0
     GPIO.output(rowNum, GPIO.HIGH)
     if GPIO.input(12) == 1:
@@ -73,25 +76,25 @@ while True:
     GPIO.output(Clk, GPIO.LOW)
     
     row1 = readKeypad(18,[1,2,3,'A'])
-    if row1 == 1:
+    if row1 == 1 and enable:
         resetGPIO()
         GPIO.output([B,C], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
         time.sleep(0.1)
         GPIO.output(Clk, GPIO.LOW)
-    elif row1 == 2:
+    elif row1 == 2 and enable:
         resetGPIO()
         GPIO.output([A,B,G,E,D], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
         time.sleep(0.1)
         GPIO.output(Clk, GPIO.LOW)
-    elif row1 == 3:
+    elif row1 == 3 and enable:
         resetGPIO()
         GPIO.output([A,B,C,G,D], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
         time.sleep(0.1)
         GPIO.output(Clk, GPIO.LOW)
-    elif row1 == 'A':
+    elif row1 == 'A' and enable:
         resetGPIO()
         GPIO.output([F, A, E, B, C, G], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
@@ -99,25 +102,25 @@ while True:
         GPIO.output(Clk, GPIO.LOW)
         
     row2 = readKeypad(23,[4,5,6,'B'])
-    if row2 == 4:
+    if row2 == 4 and enable:
         resetGPIO()
         GPIO.output([F, G, B, C], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
         time.sleep(0.1)
         GPIO.output(Clk, GPIO.LOW)
-    elif row2 == 5:
+    elif row2 == 5 and enable:
         resetGPIO()
         GPIO.output([A, F, G, C, D], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
         time.sleep(0.1)
         GPIO.output(Clk, GPIO.LOW)
-    elif row2 == 6:
+    elif row2 == 6 and enable:
         resetGPIO()
         GPIO.output([A,F,G,C,D,E], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
         time.sleep(0.1)
         GPIO.output(Clk, GPIO.LOW)
-    elif row2 == 'B':
+    elif row2 == 'B' and enable:
         resetGPIO()
         GPIO.output([F,E,D,C,G], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
@@ -125,25 +128,25 @@ while True:
         GPIO.output(Clk, GPIO.LOW)
 
     row3 = readKeypad(24,[7,8,9,'C'])
-    if row3 == 7:
+    if row3 == 7 and enable:
         resetGPIO()
         GPIO.output([A,B,C], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
         time.sleep(0.1)
         GPIO.output(Clk, GPIO.LOW)
-    elif row3 == 8:
+    elif row3 == 8 and enable:
         resetGPIO()
         GPIO.output([A,B,C,D,E,F,G], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
         time.sleep(0.1)
         GPIO.output(Clk, GPIO.LOW)
-    elif row3 == 9:
+    elif row3 == 9 and enable:
         resetGPIO()
         GPIO.output([A,B,C,F,G], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
         time.sleep(0.1)
         GPIO.output(Clk, GPIO.LOW)
-    elif row3 == 'C':
+    elif row3 == 'C' and enable:
         resetGPIO()
         GPIO.output([A,F,E,D], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
@@ -151,13 +154,13 @@ while True:
         GPIO.output(Clk, GPIO.LOW)
 
     row4 = readKeypad(25,['*',0,'#','D'])
-    if row4 == '*':
+    if row4 == '*' and enable:
         resetGPIO()
-        GPIO.output([A,B,C,D,E,F,G,DP], GPIO.LOW)
+        GPIO.output([DP], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
         time.sleep(0.1)
         GPIO.output(Clk, GPIO.LOW)
-    elif row4 == 0:
+    elif row4 == 0 and enable:
         resetGPIO()
         GPIO.output([A,B,F,C,E,D], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
@@ -166,10 +169,19 @@ while True:
     elif row4 == '#':
         resetGPIO()
         print("useless")
-        GPIO.output(Clk, GPIO.HIGH)
-        time.sleep(0.1)
-        GPIO.output(Clk, GPIO.LOW)
-    elif row4 == 'D':
+        if(enable):
+                GPIO.output(Clk, GPIO.HIGH)
+                time.sleep(0.1)
+                GPIO.output(Clk, GPIO.LOW)
+                enable = False
+                time.sleep(.1)
+                print(enable)
+        else: = True
+                GPIO.output(Clk, GPIO.HIGH)
+                time.sleep(0.1)
+                GPIO.output(Clk, GPIO.LOW)
+                print(enable)
+    elif row4 == 'D' and enable:
         resetGPIO()
         GPIO.output([B,G,E,D,C], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)

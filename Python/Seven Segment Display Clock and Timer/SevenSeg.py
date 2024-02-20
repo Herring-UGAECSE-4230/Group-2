@@ -59,9 +59,10 @@ def resetGPIO(Clk):
     GPIO.output([A,B,C,D,E,F,G,DP], GPIO.LOW)
     GPIO.output(Clk, GPIO.LOW)
     
-def loadLast(Clk, last):
+def loadLast(Clk, *last):
+    GPIO.output(*last, GPIO.HIGH)
     GPIO.output(Clk, GPIO.HIGH)
-    GPIO.output(last, GPIO.LOW)
+    GPIO.output(*last, GPIO.LOW)
     GPIO.output(Clk, GPIO.LOW)
         
 # Conditional implementation of keypad

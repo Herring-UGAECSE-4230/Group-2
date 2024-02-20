@@ -3,7 +3,6 @@ import time
 import RPi.GPIO as GPIO
 
 
-GPIO.setmode(GPIO.BCM)
 
 # Defining GPIO mode and input/output
 GPIO.setmode(GPIO.BCM)
@@ -36,6 +35,7 @@ F = 11
 A = 10
 B = 9
 
+LED = 12
 GPIO.setup(Clk1, GPIO.OUT) # Clock 1
 GPIO.setup(Clk2, GPIO.OUT) # Clock 2
 GPIO.setup(Clk3, GPIO.OUT) # Clock 3
@@ -49,7 +49,8 @@ GPIO.setup(G, GPIO.OUT) # G
 GPIO.setup(F, GPIO.OUT) # F
 GPIO.setup(A, GPIO.OUT) # A
 GPIO.setup(B, GPIO.OUT) # B
-
+GPIO.setup(LED, GPIO.OUT) #LED gpio
+count = 0
 enable = True
 last1 = []
 last2 = []
@@ -226,10 +227,16 @@ while True:
                loadLast(Clk4, last4)
                print(enable)
     elif row4 == 'D' and enable:
-        resetGPIO(Clk1)
-        last4 = [B,G,E,D,C]
-        GPIO.output([B,G,E,D,C], GPIO.HIGH)
-        GPIO.output(Clk4, GPIO.HIGH)
+        resetGPIO(Clk4)
+        if (count % 2 == 0):
+            count = count +1
+            GPIO.output(LED, GPIO.HIGH)
+            time.sleep(.2)
+        else:
+            count = count +1
+            GPIO.output(LED, GPIO.LOW)
+            time.sleep(.2)
+
         time.sleep(0.1)
         GPIO.output(Clk4, GPIO.LOW)
     

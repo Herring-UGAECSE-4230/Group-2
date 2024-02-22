@@ -75,17 +75,17 @@ def readKeypad(rowNum, char):
     GPIO.output(rowNum, GPIO.HIGH)
     if GPIO.input(12) == 1:
         curVal = char[0]
-        time.sleep(0.2)
+        time.sleep(0.1)
         return curVal
         
     if GPIO.input(16) == 1:
         curVal = char[1]
-        time.sleep(0.2)
+        time.sleep(0.1)
         return curVal
         
     if GPIO.input(20) == 1:
         curVal = char[2]
-        time.sleep(0.2)
+        time.sleep(0.1)
         return curVal
         
     if GPIO.input(21) ==1:
@@ -205,6 +205,8 @@ while True:
     elif row4 == 0 and enable:
         resetGPIO(Clk4)
         last4 = [A,B,F,C,E,D]
+        count = count +1
+        GPIO.output(LED, GPIO.LOW)
         GPIO.output([A,B,F,C,E,D], GPIO.HIGH)
         GPIO.output(Clk4, GPIO.HIGH)
         time.sleep(0.1)
@@ -227,7 +229,7 @@ while True:
                loadLast(Clk4, last4)
                print(enable)
     elif row4 == 'D' and enable:
-        resetGPIO(Clk4)
+        #resetGPIO(Clk4)
         if (count % 2 == 0):
             count = count +1
             GPIO.output(LED, GPIO.HIGH)
@@ -238,6 +240,6 @@ while True:
             time.sleep(.2)
 
         time.sleep(0.1)
-        GPIO.output(Clk4, GPIO.LOW)
+        #GPIO.output(Clk4, GPIO.LOW)
     
     GPIO.output([Clk1,Clk2,Clk3,Clk4], GPIO.LOW)

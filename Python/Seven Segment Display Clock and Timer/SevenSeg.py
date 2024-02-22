@@ -35,7 +35,7 @@ F = 11
 A = 10
 B = 9
 
-LED = 12
+LED = 8
 GPIO.setup(Clk1, GPIO.OUT) # Clock 1
 GPIO.setup(Clk2, GPIO.OUT) # Clock 2
 GPIO.setup(Clk3, GPIO.OUT) # Clock 3

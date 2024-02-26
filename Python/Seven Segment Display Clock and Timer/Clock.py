@@ -86,9 +86,9 @@ def resetGPIO(Clk):
     
 def loadLast():
     loadDisplay(Clk1,last[0])
-    loadDisplay(Clk1,last[1])
-    loadDisplay(Clk1,last[2])
-    loadDisplay(Clk1,last[3])
+    loadDisplay(Clk2,last[1])
+    loadDisplay(Clk3,last[2])
+    loadDisplay(Clk4,last[3])
     print("loads last")
 # Conditional implementation of keypad changed to look up table to make it easier for logic
 def read_keypad():

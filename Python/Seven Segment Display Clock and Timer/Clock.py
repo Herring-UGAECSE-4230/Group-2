@@ -45,30 +45,28 @@ GPIO.setup([E,D,C,DP,G,F,A,B,LED], GPIO.OUT) # E
 
 count = 0
 enable = True
-global position
 position = 1
-last1 = []
-last2 = []
-last3 = []
-last4 = []
+last = []
+
 
 
 #decided to rework our ssd code for clock to simplfy some of the logic
+#is a table that contains the each seg and the corresponding value of gpio output to display
 seven_segment_map = {
-    '0': [1, 1, 1, 1, 1, 1, 0],
-    '1': [0, 1, 1, 0, 0, 0, 0],
-    '2': [1, 1, 0, 1, 1, 0, 1],
-    '3': [1, 1, 1, 1, 0, 0, 1],
-    '4': [0, 1, 1, 0, 0, 1, 1],
-    '5': [1, 0, 1, 1, 0, 1, 1],
-    '6': [1, 0, 1, 1, 1, 1, 1],
-    '7': [1, 1, 1, 0, 0, 0, 0],
-    '8': [1, 1, 1, 1, 1, 1, 1],
-    '9': [1, 1, 1, 0, 0, 1, 1],
-    'A': [1, 1, 1, 0, 1, 1, 1],
-    'B': [0, 0, 1, 1, 1, 1, 1],
-    'C': [1, 0, 0, 1, 1, 1, 0],
-    'D': [0, 1, 1, 1, 1, 0, 1],
+    '0': [(A,1), (B,1), (C,1), (D,1), (E,1), (F,1), (G,0)],
+    '1': [(A,0), (B,1), (C,1), (D,0), (E,0), (F,0), (G,0)],
+    '2': [(A,1), (B,1), (C,0), (D,1), (E,1), (F,0), (G,1)],
+    '3': [(A,1), (B,1), (C,1), (D,1), (E,0), (F,0), (G,1)],
+    '4': [(A,0), (B,1), (C,1), (D,0), (E,0), (F,1), (G,1)],
+    '5': [(A,1), (B,0), (C,1), (D,1), (E,0), (F,1), (G,1)],
+    '6': [(A,1), (B,0), (C,1), (D,1), (E,1), (F,1), (G,1)],
+    '7': [(A,1), (B,1), (C,1), (D,0), (E,0), (F,0), (G,0)],
+    '8': [(A,1), (B,1), (C,1), (D,1), (E,1), (F,1), (G,1)],
+    '9': [(A,1), (B,1), (C,1), (D,0), (E,0), (F,1), (G,1)],
+    'A': [(A,1), (B,1), (C,1), (D,0), (E,1), (F,1), (G,1)],
+    'B': [(A,0), (B,0), (C,1), (D,1), (E,1), (F,1), (G,1)],
+    'C': [(A,1), (B,0), (C,0), (D,1), (E,1), (F,1), (G,0)],
+    'D': [(A,0), (B,1), (C,1), (D,1), (E,1), (F,0), (G,1)],
 }
 
 
@@ -77,6 +75,7 @@ def flash(Clk):
     GPIO.output(Clk, GPIO.LOW)
     GPIO.output([A,B,C,D,E,F,G,DP], GPIO.HIGH)
     GPIO.output(Clk, GPIO.HIGH)
+    time.sleep(.2)              #slows it down so we can see it flash
     GPIO.output([A,B,C,D,E,F,G,DP], GPIO.LOW)
     GPIO.output(Clk, GPIO.HIGH)
 # Resets SSD Display
@@ -85,17 +84,17 @@ def resetGPIO(Clk):
     GPIO.output([A,B,C,D,E,F,G,DP], GPIO.LOW)
     GPIO.output(Clk, GPIO.LOW)
     
-def loadLast(Clk, *last):
-    GPIO.output(*last, GPIO.HIGH)
-    GPIO.output(Clk, GPIO.HIGH)
-    GPIO.output(*last, GPIO.LOW)
-    GPIO.output(Clk, GPIO.LOW)
-        
+def loadLast():
+    loadDisplay(Clk1,last[0])
+    loadDisplay(Clk1,last[1])
+    loadDisplay(Clk1,last[2])
+    loadDisplay(Clk1,last[3])
+    print("loads last")
 # Conditional implementation of keypad changed to look up table to make it easier for logic
 def read_keypad():
 
     #Look up table for Keypad
-    key_map_lut = [
+    key_lut = [
         "1", "2", "3", "A",
         "4", "5", "6", "B",
         "7", "8", "9", "C",
@@ -113,18 +112,71 @@ def read_keypad():
                 time.sleep(0.1)  
                 if GPIO.input(colPins):
                     GPIO.output(rowPins, GPIO.LOW)
-                    #returns the corresponding map
-                    return key_map_lut[row * 4 + col]
+                    #returns the corresponding values based on the map
+                    return key_lut[row * 4 + col]
         GPIO.output(rowPins, GPIO.LOW)
 
         GPIO.output(row, GPIO.LOW)
 
-def loadDisplay(value):
-    print(WIP)
+def loadDisplay(Clk, value):
+
+    position = position + 1 
+    print("loading" + value + "into seven seg " + position)
+    outputs = seven_segment_map[value]
+    for pin, state in outputs:
+        GPIO.output(Clk, GPIO.LOW)
+        GPIO.output(pin, state)
+        GPIO.output(Clk, GPIO.HIGH)
+   
+
+
 
 while True:
+    GPIO.output([Clk1,Clk2,Clk3,Clk4], GPIO.LOW)
     if(GPIO.input(yPins)):
        value = read_keypad()
-       loadDisplay(value)
+       if value == '#':
+            if(count % 2 == 0):
+                enable = False
+            else:
+                enable = True
+                loadLast()
+       else:
+        if position == 1:
+            loadDisplay(Clk1, value)
+            last[0] = value
+        elif position == 2:
+            loadDisplay(Clk2, value)
+            last[1] = value
+        elif position == 3:
+            loadDisplay(Clk3, value)
+            last[2] = value
+        elif position == 4:   
+            loadDisplay(Clk4, value)
+            last[3] = value
     else:
-        flash()
+        if position == 1:
+            flash(Clk1)
+        elif position == 2:
+            flash(Clk2)
+        elif position == 3:
+            flash(Clk3)
+        elif position == 4:
+            flash(Clk4)
+        else:
+            time.sleep(60)
+            last[3] = last[3] + 1
+            if last[3] == 10:
+                last[2] = last [2] + 1
+                last[3] = 0
+                if last [2] == 6:
+                    last [1] = last[1] + 1
+                    last [2] = 0
+                    if last [0] == 1 and last [1] == 2:
+                        last [0] = 0
+                        last [1] = 1
+                    elif last [1] == 10:
+                        last [0] = last [0] + 1
+                        last [1] = 0
+            loadLast()
+    time.sleep(.1)

@@ -3,7 +3,6 @@ import RPi.GPIO as GPIO
 from datetime import datetime
 GPIO.setmode(GPIO.BCM)
 
-
 # Clock Setup
 Clk1 = 22
 Clk2 = 27
@@ -34,13 +33,34 @@ GPIO.setup(F, GPIO.OUT) # F
 GPIO.setup(A, GPIO.OUT) # A
 GPIO.setup(B, GPIO.OUT) # B
 
+# Variables for loop
+PM = False
 
 while True:
      GPIO.output([Clk1, Clk2, Clk3, Clk4], GPIO.LOW)
-     now=datetime.now()
+     now = datetime.now()
+          
+     # Retrieves the hour and subtracts 12 to remain in 12-hour format 
      hour = now.hour
-     print(hour)
-     
+     if hour > 12:
+          hour -= 12
+          PM = True
+     else:
+          PM = False
+
+     # Retrieves the minute
      minute = now.minute
-     print(minute)
+
+     # Format hour and minute to 2-digit string
+     hour = '{0:02d}'.format(hour)
+     minute = '{0:02d}'.format(minute)
+
+
+
+
+
+
+
+
+
      GPIO.output([Clk1, Clk2, Clk3, Clk4], GPIO.HIGH)

@@ -37,9 +37,10 @@ GPIO.setup(B, GPIO.OUT) # B
 PM = False
 
 while True:
+     PM = False
      GPIO.output([Clk1, Clk2, Clk3, Clk4], GPIO.LOW)
      now = datetime.now()
-          
+     
      # Retrieves the hour and subtracts 12 to remain in 12-hour format 
      hour = now.hour
      if hour > 12:

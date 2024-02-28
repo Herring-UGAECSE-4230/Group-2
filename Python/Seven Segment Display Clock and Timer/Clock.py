@@ -1,4 +1,4 @@
-#imports for file
+# Imports for file
 import time
 import RPi.GPIO as GPIO
 from datetime import datetime
@@ -11,7 +11,6 @@ GPIO.setup(18, GPIO.OUT) # Yellow Wire X1
 GPIO.setup(23, GPIO.OUT) # Orange Wire X2
 GPIO.setup(24, GPIO.OUT) # Brown Wire X3
 GPIO.setup(25, GPIO.OUT) # Red Wire X4
-
 xPins = [18,23,24,25]
 
 # Y-Values (Vertical) Mapping
@@ -19,8 +18,8 @@ GPIO.setup(12, GPIO.IN) # Black Wire Y1
 GPIO.setup(16, GPIO.IN) # White Wire Y2
 GPIO.setup(20, GPIO.IN) # Gray Wire Y3
 GPIO.setup(21, GPIO.IN) # Blue Wire Y4
-
 yPins = [12,16,20,21]
+
 # Clock Setup
 Clk1 = 22
 Clk2 = 27
@@ -36,11 +35,9 @@ G = 5
 F = 11
 A = 10
 B = 9
-
 LED = 8
+
 GPIO.setup([Clk1,Clk2,Clk3,Clk4], GPIO.OUT) # Clocks
-
-
 GPIO.setup([E,D,C,DP,G,F,A,B,LED], GPIO.OUT) # E
 
 count = 0
@@ -48,10 +45,7 @@ enable = True
 position = 1
 last = []
 
-
-
-#decided to rework our ssd code for clock to simplfy some of the logic
-#is a table that contains the each seg and the corresponding value of gpio output to display
+# Maps the segments on the SSD to the corresponding keypad values
 seven_segment_map = {
     '0': [(A,1), (B,1), (C,1), (D,1), (E,1), (F,1), (G,0)],
     '1': [(A,0), (B,1), (C,1), (D,0), (E,0), (F,0), (G,0)],
@@ -69,15 +63,15 @@ seven_segment_map = {
     'D': [(A,0), (B,1), (C,1), (D,1), (E,1), (F,0), (G,1)],
 }
 
-
-#waits for user input on keypad and flashes the seven seg
+# Waits for user input on keypad and flashes the SSD
 def flash(Clk):
     GPIO.output(Clk, GPIO.LOW)
     GPIO.output([A,B,C,D,E,F,G,DP], GPIO.HIGH)
     GPIO.output(Clk, GPIO.HIGH)
-    time.sleep(.2)              #slows it down so we can see it flash
+    time.sleep(.2) # Slows it down so we can see it flash
     GPIO.output([A,B,C,D,E,F,G,DP], GPIO.LOW)
     GPIO.output(Clk, GPIO.HIGH)
+
 # Resets SSD Display
 def resetGPIO(Clk):
     GPIO.output(Clk, GPIO.HIGH)
@@ -90,10 +84,10 @@ def loadLast():
     loadDisplay(Clk3,last[2])
     loadDisplay(Clk4,last[3])
     print("loads last")
+
 # Conditional implementation of keypad changed to look up table to make it easier for logic
 def read_keypad():
-
-    #Look up table for Keypad
+    # Look up table for Keypad
     key_lut = [
         "1", "2", "3", "A",
         "4", "5", "6", "B",
@@ -101,25 +95,21 @@ def read_keypad():
         "*", "0", "#", "D"
     ]
 
-    #just learned enumerate from a classmate this is game changing
     for row, rowPins in enumerate(xPins):
         GPIO.output(rowPins, GPIO.HIGH)
-        #I am about to only use enumerate forever no more i++ so long loser (-_-)7
         for col, colPins in enumerate(yPins):
-            #checks if high
+            # Checks if high
             if GPIO.input(colPins):
-                #time sleep for a little debounce
+                # Time sleep for a little debounce
                 time.sleep(0.1)  
                 if GPIO.input(colPins):
                     GPIO.output(rowPins, GPIO.LOW)
-                    #returns the corresponding values based on the map
+                    # Returns the corresponding values based on the map
                     return key_lut[row * 4 + col]
         GPIO.output(rowPins, GPIO.LOW)
-
         GPIO.output(row, GPIO.LOW)
 
 def loadDisplay(Clk, value):
-
     position = position + 1 
     print("loading" + value + "into seven seg " + position)
     outputs = seven_segment_map[value]
@@ -127,33 +117,66 @@ def loadDisplay(Clk, value):
         GPIO.output(Clk, GPIO.LOW)
         GPIO.output(pin, state)
         GPIO.output(Clk, GPIO.HIGH)
+
+def autoClock():
+    PM = False
+    GPIO.output([Clk1, Clk2, Clk3, Clk4], GPIO.LOW)
+    now = datetime.now()
+     
+    # Retrieves the hour and subtracts 12 to remain in 12-hour format 
+    hour = now.hour
+    if hour > 12:
+        hour -= 12
+        PM = True
+    else:
+        PM = False
+
+    # Retrieves the minute
+    minute = now.minute
+
+    # Format hour and minute to 2-digit string
+    hour = '{0:02d}'.format(hour)
+    minute = '{0:02d}'.format(minute)
+
+    # Returns the hour and the minute as 2 digit strings
+    return hour, minute
    
-
-
-
 while True:
     GPIO.output([Clk1,Clk2,Clk3,Clk4], GPIO.LOW)
     if(GPIO.input(yPins)):
-       value = read_keypad()
-       if value == '#':
+        value = read_keypad()
+        # This turns the clock on and off
+        if value == '#':
             if(count % 2 == 0):
                 enable = False
             else:
                 enable = True
                 loadLast()
-       else:
-        if position == 1:
-            loadDisplay(Clk1, value)
-            last[0] = value
-        elif position == 2:
-            loadDisplay(Clk2, value)
-            last[1] = value
-        elif position == 3:
-            loadDisplay(Clk3, value)
-            last[2] = value
-        elif position == 4:   
-            loadDisplay(Clk4, value)
-            last[3] = value
+        # This runs the automatic clock
+        if value == 'A':
+            hourDigit, minuteDigit = autoClock()
+            # Separates the two digit strings into a single digit
+            hourDigit.split()
+            minuteDigit.split()
+            # Loads corresponding displays with single digits
+            loadDisplay(Clk1, hourDigit[0])
+            loadDisplay(Clk2, hourDigit[1])
+            loadDisplay(Clk3, minuteDigit[0])
+            loadDisplay(Clk4, minuteDigit[1])
+
+        else:
+            if position == 1:
+                loadDisplay(Clk1, value)
+                last[0] = value
+            elif position == 2:
+                loadDisplay(Clk2, value)
+                last[1] = value
+            elif position == 3:
+                loadDisplay(Clk3, value)
+                last[2] = value
+            elif position == 4:   
+                loadDisplay(Clk4, value)
+                last[3] = value
     else:
         if position == 1:
             flash(Clk1)

@@ -37,9 +37,11 @@ A = 10
 B = 9
 LED = 8
 
+# Set up pins and clocks as list
 GPIO.setup([Clk1,Clk2,Clk3,Clk4], GPIO.OUT) # Clocks
 GPIO.setup([E,D,C,DP,G,F,A,B,LED], GPIO.OUT) # E
 
+# Initialize variables
 count = 0
 enable = True
 global position
@@ -71,6 +73,7 @@ seven_segment_map = {
     'X': [(A,0), (B,0), (C,0), (D,0), (E,0), (F,0), (G,0)],
 }
 
+# Sets the seven segment display to "0000"
 def startMode():
     global position
     loadDisplay(Clk1, '0')
@@ -79,6 +82,7 @@ def startMode():
     loadDisplay(Clk4, '0')
     position = 1
 
+# Turns the seven segment display off
 def disable():
     global position
     position = 1
@@ -94,7 +98,7 @@ def flash(Clk):
     print ("flashing")
     if(now + 0.2 > time.time()):
         GPIO.output(Clk, GPIO.LOW)
-        GPIO.output([A,B,C,D,E,F,G,DP], GPIO.HIGH)
+        GPIO.output([A,B,C,D,E,F,G,DP], GPIO.HIGH) 
         GPIO.output(Clk, GPIO.HIGH)
     else:
 
@@ -108,7 +112,8 @@ def resetGPIO(Clk):
     GPIO.output(Clk, GPIO.HIGH)
     GPIO.output([A,B,C,D,E,F,G,DP], GPIO.LOW)
     GPIO.output(Clk, GPIO.LOW)
-    
+
+# Loads the last stored keypad value to the corresponding SSD    
 def loadLast():
     global position
     position = 1
@@ -120,39 +125,41 @@ def loadLast():
     position = 1
     print(position)
 
-# Conditional implementation of keypad changed to look up table to make it easier for logic
+# Tmplementation of keypad as a lookup table
 def read_keypad():
-    # Look up table for Keypad
+    # Look up table for keypad
     key_lut = [
         "1", "2", "3", "A",
         "4", "5", "6", "B",
         "7", "8", "9", "C",
         "*", "0", "#", "D"
     ]
-    
+    # Enumerate allows the cycling of all keys on the keypad
     for row, rowPins in enumerate(xPins):
-        GPIO.output(rowPins, GPIO.HIGH)
+        GPIO.output(rowPins, GPIO.HIGH) # Row pins are used as output pins
         for col, colPins in enumerate(yPins):
             # Checks if high
             if GPIO.input(colPins):
                 time.sleep(0.1)
-                if GPIO.input(colPins):
+                if GPIO.input(colPins): # Column pins are used as input pins
                     GPIO.output(rowPins, GPIO.LOW)
                     return key_lut[row * 4 + col]
         GPIO.output(rowPins, GPIO.LOW)
-        
+
+# This method loads a provided value from the keypad onto a seven segment display        
 def loadDisplay(Clk, value):
-    global position
+    global position # Position is used to determine which display a value will load to
     print(position)
-    position = position + 1 
+    position = position + 1 # Increment position to cycle through all four seven segments
     print("loading")
-    outputs = seven_segment_map[value]
+    outputs = seven_segment_map[value] # Uses earlier SSD display mapping
     for pin, state in outputs:
         GPIO.output(Clk, GPIO.LOW)
         GPIO.output(pin, state)
         GPIO.output(DP, GPIO.LOW)
         GPIO.output(Clk, GPIO.HIGH)
 
+# Increments the position of the display and checks the status of previous values
 def increment():
     last[3] = int(last[3]) + 1
     if int(last[3]) == 10:
@@ -169,6 +176,7 @@ def increment():
                 last [1] = 0
     loadLast()
 
+# Sets up the automatic clock for use in runAutoClock() method
 def autoClock():
     GPIO.output([Clk1, Clk2, Clk3, Clk4], GPIO.LOW)
     now = datetime.now()
@@ -177,11 +185,11 @@ def autoClock():
     hour = now.hour
     if hour > 12:
         hour = hour - 12
-        useDot()
+        useDot() # Dot is used to show PM
         
     if hour == 0:
         hour = hour + 12
-        useDot()
+        useDot() # Dot is used to show PM
 
     # Retrieves the minute
     minute = now.minute
@@ -192,13 +200,14 @@ def autoClock():
 
     # Returns the hour and the minute as 2 digit strings
     return hour, minute
-   
+
+# Autoclock method that is called when "A" is pressed   
 def runAutoClock():
-    global interrupt
-    interrupt = False
-    hourDigit, minuteDigit = autoClock()
+    global interrupt # Establishes interrupt to break the loop when certain criteria is met
+    interrupt = False # Setting interrupt to false allows the loop to continuously run
+    hourDigit, minuteDigit = autoClock() # Takes values from autoClock and to use them in this method
     # Separates the two digit strings into a single digit
-    hourDigit.split()
+    hourDigit.split() 
     minuteDigit.split()
     # Loads corresponding displays with single digits
     loadDisplay(Clk1, hourDigit[0])
@@ -211,32 +220,33 @@ def runAutoClock():
     last[3] = minuteDigit[1]
     value = read_keypad()
     while(not interrupt):
-        manualTimer()
+        manualTimer() # After setting the initial value for autoclock the manual timer system is used
         if(interrupt):
             break
-        increment()
-    
+        increment() # Increments display position
+
+# Main timer loop    
 def manualTimer():
-    global countb
-    global count
+    global countb # Counts the number of times "B" is pressed
+    global count # Counts the number of times "#" is pressed
     global position
     global interrupt
     interrupt = False
     count = 0
-    now = time.time()
-    switch = now + 60
-    while(time.time() < switch and not interrupt):
+    now = time.time() # Stores the current time
+    switch = now + 60 # Stores sixty seconds in the future from the current time
+    while(time.time() < switch and not interrupt): # Runs loop until interrupt
         # This turns the clock on and off
-        value = read_keypad()
+        value = read_keypad() # Reads the keypad to detect presses for "B" or "#"
         if value == 'B':
-            countb = countb + 1
+            countb = countb + 1 # Increments countb when "B" is pressed
             print("b")
-            if countb == 3:
+            if countb == 3: # If "B" is pressed three times return to "0000" on SSDs and interrupt to break loop
                 count = 0
                 countb = 0
                 position = 1
                 startMode()
-                value = 'C'
+                value = 'C' # Stores value "C" to avoid the detection of four "B" presses (debounce)
                 print("broke")
                 interrupt = True
                 break
@@ -245,114 +255,115 @@ def manualTimer():
                 position = 1
                 print("off")
                 
-                disable()
-                count = count + 1
+                disable() # Turns the display off if the "#" is pressed
+                count = count + 1 # Increments count to keep track of display state (on or off)
                 
             else:
                 print("on")
                
-                loadLast()
+                loadLast() # Loads the last displayed values onto the screen when turned back on
                 count = count + 1
                
-
+# Reloads the last position of the first two SSDs for overflow detection
 def reLoad():
     global position
     position = 1
     print("reload")
     loadDisplay(Clk1,str(last[0]))
     loadDisplay(Clk2,str(last[1]))
-    
+
+# Runs the manual clock when "B" is pressed on start screen   
 def runManualClock():
     global interrupt
-    interrupt = False
+    interrupt = False # Allows loop to continously run until broken
     while(not interrupt):
-        time.sleep(.1)
-        manValue = read_keypad()
+        time.sleep(.1) # Debounce
+        manValue = read_keypad() # Reads the keypad and stores it as the manual clock value
         if(manValue):
-            if position == 1 and (manValue == '0' or manValue == '1' or manValue == '2'):
+            if position == 1 and (manValue == '0' or manValue == '1' or manValue == '2'): # Overflow checking logic for first SSD
                 loadDisplay(Clk1, manValue)
                 last[0] = int(manValue)
                 GPIO.output(LED, GPIO.LOW)
-            elif position == 2 and (manValue == '0' or manValue == '1' or manValue == '2' or manValue == '3' or manValue == '4' or manValue == '5' or manValue == '6' or manValue ==  '7' or manValue == '8' or manValue == '9'):
+            elif position == 2 and (manValue == '0' or manValue == '1' or manValue == '2' or manValue == '3' or manValue == '4' or manValue == '5' or manValue == '6' or manValue ==  '7' or manValue == '8' or manValue == '9'): # Overflow checking logic for second SSD
                 loadDisplay(Clk2, manValue)
                 last[1] = int(manValue)
                 GPIO.output(LED, GPIO.LOW)
-                if last[0] == 2:
+                if last[0] == 2: # Used for PM
                     if last[1] == 0:
                         last[0] = 0
                         last[1] = 8
                         reLoad()
                         useDot()
-                    elif last[1] == 1:
+                    elif last[1] == 1: # Used for PM
                         last[0] = 0
                         last[1] = 9
                         reLoad()
                         useDot()
-                    elif last[1] == 2:
+                    elif last[1] == 2: # Used for PM
                         last[0] = 1
                         last[1] = 0
                         reLoad()
                         useDot()
-                    elif last[1] == 3:
+                    elif last[1] == 3: # Used for PM
                         last[0] = 1
                         last[1] = 1
                         reLoad()
                         useDot()
-                    elif last[1] == 4:
+                    elif last[1] == 4: # Used for PM
                         last[0] = 1
                         last[1] = 2
                         reLoad()
                         useDot()
-                elif last[0] == 1:
+                elif last[0] == 1: # Used for PM
                     if last[1] == 2:
                         last[0] = 1
                         last[1] = 2
                         reLoad()
                         useDot()
-                    elif last[1] == 3:
+                    elif last[1] == 3: # Used for PM
                         last[0] = 0
                         last[1] = 1
                         reLoad()
                         useDot()
-                    elif last[1] == 4:
+                    elif last[1] == 4: # Used for PM
                         last[0] = 0
                         last[1] = 2
                         useDot()
-                    elif last[1] == 5:
+                    elif last[1] == 5: # Used for PM
                         last[0] = 0
                         last[1] = 3
                         reLoad()
                         useDot()
-                    elif last[1] == 6:
+                    elif last[1] == 6: # Used for PM
                         last[0] = 0
                         last[1] = 4
                         reLoad()
                         useDot()
-                    elif last[1] == 7:
+                    elif last[1] == 7: # Used for PM
                         last[0] = 0
                         last[1] = 5
                         useDot()
-                    elif last[1] == 8:
+                    elif last[1] == 8: # Used for PM
                         last[0] = 0
                         last[1] = 6
                         reLoad()
                         useDot()
-                    elif last[1] == 9:
+                    elif last[1] == 9: # Used for PM
                         last[0] = 0
                         last[1] = 7
                         reLoad()
                         useDot()
-            elif position == 3 and (manValue == '0' or manValue == '1' or manValue == '2' or manValue == '3' or manValue == '4' or manValue == '5'):
+            elif position == 3 and (manValue == '0' or manValue == '1' or manValue == '2' or manValue == '3' or manValue == '4' or manValue == '5'): # Overflow logic for third SSD
                 loadDisplay(Clk3, manValue)
                 last[2] = int(manValue)
                 GPIO.output(LED, GPIO.LOW)
-            elif position == 4 and (manValue == '0' or manValue == '1' or manValue == '2' or manValue == '3' or manValue == '4' or manValue == '5' or manValue == '6' or manValue ==  '7' or manValue == '8' or manValue ==  '9'):   
+            elif position == 4 and (manValue == '0' or manValue == '1' or manValue == '2' or manValue == '3' or manValue == '4' or manValue == '5' or manValue == '6' or manValue ==  '7' or manValue == '8' or manValue ==  '9'): # Overflow logic for fourth SSD   
                 loadDisplay(Clk4, manValue)
                 last[3] = int(manValue)
                 GPIO.output(LED, GPIO.LOW)
             else:
                 GPIO.output(LED, GPIO.HIGH)
-        else:
+        else: # Begins flashing the SSDs based on above logic
             if position == 1:
                 flash(Clk1)
             elif position == 2:
@@ -368,6 +379,7 @@ def runManualClock():
                         break
                     increment()
 
+# Uses the dot if value is PM in manual or automatic mode
 def useDot():
     GPIO.output(Clk2, GPIO.LOW)
     GPIO.output(DP, GPIO.HIGH)
@@ -375,17 +387,18 @@ def useDot():
     GPIO.output(DP, GPIO.LOW)
     GPIO.output(Clk2, GPIO.LOW)
     
-    
+# Sets the displays to "0000" on program run   
 startMode()
+
+# Main loop
 while True:
-    value = read_keypad()
+    value = read_keypad() # Reads keypad continuously
     print(value)
     if(value):
         print("reading")
         # This runs the automatic clock
         if value == 'A':
             runAutoClock()
+        # This runs the manual clock    
         elif value == 'B':
             runManualClock()
-
-    

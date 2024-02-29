@@ -158,8 +158,7 @@ def autoClock():
 
     # Returns the hour and the minute as 2 digit strings
     return hour, minute
-
-startMode()   
+  
 while True:
     escape = 0
     GPIO.output([Clk1,Clk2,Clk3,Clk4], GPIO.LOW)

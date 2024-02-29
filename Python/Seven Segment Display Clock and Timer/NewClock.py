@@ -47,6 +47,10 @@ position = 1
 last = [0,0,0,0]
 global now
 now = time.time()
+global interrupt
+interrupt = False
+global countb
+countb = 0
 
 # Maps the segments on the SSD to the corresponding keypad values
 seven_segment_map = {
@@ -67,6 +71,15 @@ seven_segment_map = {
     'X': [(A,0), (B,0), (C,0), (D,0), (E,0), (F,0), (G,0)],
 }
 
+
+def startMode():
+    global position
+    loadDisplay(Clk1, '0')
+    loadDisplay(Clk2, '0')
+    loadDisplay(Clk3, '0')
+    loadDisplay(Clk4, '0')
+    position = 1
+    
 # Waits for user input on keypad and flashes the SSD
 def flash(Clk):
     global now
@@ -118,6 +131,7 @@ def read_keypad():
         
 def loadDisplay(Clk, value):
     global position
+    print(position)
     position = position + 1 
     print("loading")
     outputs = seven_segment_map[value]
@@ -166,6 +180,60 @@ def autoClock():
     # Returns the hour and the minute as 2 digit strings
     return hour, minute
    
+def runAutoClock():
+    global interrupt
+    hourDigit, minuteDigit = autoClock()
+    # Separates the two digit strings into a single digit
+    hourDigit.split()
+    minuteDigit.split()
+    # Loads corresponding displays with single digits
+    loadDisplay(Clk1, hourDigit[0])
+    last[0] = hourDigit[0]
+    loadDisplay(Clk2, hourDigit[1])
+    last[1] = hourDigit[1]
+    loadDisplay(Clk3, minuteDigit[0])
+    last[2] = minuteDigit[0]
+    loadDisplay(Clk4, minuteDigit[1])
+    last[3] = minuteDigit[1]
+    value = read_keypad()
+    while(not interrupt):
+        manualTimer()
+        if(not interrupt):
+            break
+        increment()
+    
+
+def manualTimer():
+    global countb
+    global count
+    global position
+    now = time.time()
+    switch = now + 60
+    while(time.time() < switch):
+        # This turns the clock on and off
+        value = read_keypad()
+        if value == 'B':
+            countb = countb + 1
+            if countb == 3:
+                count = 0
+                countb = 0
+                position = 1
+                startMode()
+                print("broke")
+                interrupt = True
+                break
+        if value == '#':
+            if(count % 2 == 0):
+                enable = False
+                startMode()
+                count = count + 1
+                time.sleep(0.05)
+            else:
+                enable = True
+                loadLast()
+                count = 0
+                time.sleep(0.05)
+    
 while True:
     GPIO.output([Clk1,Clk2,Clk3,Clk4], GPIO.LOW)
     value = read_keypad()
@@ -173,19 +241,9 @@ while True:
     if(value):
         print("reading")
         
-        
         # This runs the automatic clock
         if value == 'A':
-                hourDigit, minuteDigit = autoClock()
-                # Separates the two digit strings into a single digit
-                hourDigit.split()
-                minuteDigit.split()
-                # Loads corresponding displays with single digits
-                loadDisplay(Clk1, hourDigit[0])
-                loadDisplay(Clk2, hourDigit[1])
-                loadDisplay(Clk3, minuteDigit[0])
-                loadDisplay(Clk4, minuteDigit[1])
-                value = read_keypad()
+                runAutoClock()
         else:
             if position == 1:
                 loadDisplay(Clk1, value)
@@ -209,37 +267,6 @@ while True:
         elif position == 4:
             flash(Clk4)
         else:
-            print("uh oh")
-            now = time.time()
-            switch = now + 60
-            while(time.time() < switch):
-                # This turns the clock on and off
-                value = read_keypad()
-                if value == '#':
-                    if(count % 2 == 0):
-                        enable = False
-                        startMode()
-                        count = count + 1
-                        time.sleep(0.05)
-                    else:
-                        enable = True
-                        loadLast()
-                        count = count + 1
-                        time.sleep(0.05)
-                        break
-                        
-            last[3] = int(last[3]) + 1
-            if int(last[3]) == 10:
-                last[2] = int(last [2]) + 1
-                last[3] = 0
-                if int(last [2]) == 6:
-                    last [1] = int(last[1]) + 1
-                    last [2] = 0
-                    if int(last [0]) == 1 and int(last [1]) == 3:
-                        last [0] = 0
-                        last [1] = 1
-                    elif int(last [1]) == 10:
-                        last [0] = int(last [0]) + 1
-                        last [1] = 0
-            loadLast()
+            manualTimer()
+            increment()
     time.sleep(0.1)

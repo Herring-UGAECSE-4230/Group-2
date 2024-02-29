@@ -71,7 +71,6 @@ seven_segment_map = {
     'X': [(A,0), (B,0), (C,0), (D,0), (E,0), (F,0), (G,0)],
 }
 
-
 def startMode():
     global position
     loadDisplay(Clk1, '0')
@@ -79,12 +78,21 @@ def startMode():
     loadDisplay(Clk3, '0')
     loadDisplay(Clk4, '0')
     position = 1
+
+def disable():
+    global position
+    position = 1
+    loadDisplay(Clk1, 'X')
+    loadDisplay(Clk2, 'X')
+    loadDisplay(Clk3, 'X')
+    loadDisplay(Clk4, 'X')
+    position = 1
     
 # Waits for user input on keypad and flashes the SSD
 def flash(Clk):
     global now
     print ("flashing")
-    if(now + 0.12 > time.time()):
+    if(now + 0.2 > time.time()):
         GPIO.output(Clk, GPIO.LOW)
         GPIO.output([A,B,C,D,E,F,G,DP], GPIO.HIGH)
         GPIO.output(Clk, GPIO.HIGH)
@@ -102,11 +110,15 @@ def resetGPIO(Clk):
     GPIO.output(Clk, GPIO.LOW)
     
 def loadLast():
+    global position
+    position = 1
     loadDisplay(Clk1,str(last[0]))
     loadDisplay(Clk2,str(last[1]))
     loadDisplay(Clk3,str(last[2]))
     loadDisplay(Clk4,str(last[3]))
     print("loads last")
+    position = 1
+    print(position)
 
 # Conditional implementation of keypad changed to look up table to make it easier for logic
 def read_keypad():
@@ -158,21 +170,22 @@ def increment():
     loadLast()
 
 def autoClock():
-    PM = False
     GPIO.output([Clk1, Clk2, Clk3, Clk4], GPIO.LOW)
     now = datetime.now()
-     
+    
     # Retrieves the hour and subtracts 12 to remain in 12-hour format 
     hour = now.hour
     if hour > 12:
-        hour -= 12
-        PM = True
-    else:
-        PM = False
+        hour = hour - 12
+        useDot()
+        
+    if hour == 0:
+        hour = hour + 12
+        useDot()
 
     # Retrieves the minute
     minute = now.minute
-
+    
     # Format hour and minute to 2-digit string
     hour = '{0:02d}'.format(hour)
     minute = '{0:02d}'.format(minute)
@@ -182,6 +195,7 @@ def autoClock():
    
 def runAutoClock():
     global interrupt
+    interrupt = False
     hourDigit, minuteDigit = autoClock()
     # Separates the two digit strings into a single digit
     hourDigit.split()
@@ -198,75 +212,180 @@ def runAutoClock():
     value = read_keypad()
     while(not interrupt):
         manualTimer()
-        if(not interrupt):
+        if(interrupt):
             break
         increment()
     
-
 def manualTimer():
     global countb
     global count
     global position
+    global interrupt
+    interrupt = False
+    count = 0
     now = time.time()
     switch = now + 60
-    while(time.time() < switch):
+    while(time.time() < switch and not interrupt):
         # This turns the clock on and off
         value = read_keypad()
         if value == 'B':
             countb = countb + 1
+            print("b")
             if countb == 3:
                 count = 0
                 countb = 0
                 position = 1
                 startMode()
+                value = 'C'
                 print("broke")
                 interrupt = True
                 break
         if value == '#':
             if(count % 2 == 0):
-                enable = False
-                startMode()
+                position = 1
+                print("off")
+                
+                disable()
                 count = count + 1
-                time.sleep(0.05)
+                
             else:
-                enable = True
+                print("on")
+               
                 loadLast()
-                count = 0
-                time.sleep(0.05)
+                count = count + 1
+               
+
+def reLoad():
+    global position
+    position = 1
+    print("reload")
+    loadDisplay(Clk1,str(last[0]))
+    loadDisplay(Clk2,str(last[1]))
     
+def runManualClock():
+    global interrupt
+    interrupt = False
+    while(not interrupt):
+        time.sleep(.1)
+        manValue = read_keypad()
+        if(manValue):
+            if position == 1 and (manValue == '0' or manValue == '1' or manValue == '2'):
+                loadDisplay(Clk1, manValue)
+                last[0] = int(manValue)
+                GPIO.output(LED, GPIO.LOW)
+            elif position == 2 and (manValue == '0' or manValue == '1' or manValue == '2' or manValue == '3' or manValue == '4' or manValue == '5' or manValue == '6' or manValue ==  '7' or manValue == '8' or manValue == '9'):
+                loadDisplay(Clk2, manValue)
+                last[1] = int(manValue)
+                GPIO.output(LED, GPIO.LOW)
+                if last[0] == 2:
+                    if last[1] == 0:
+                        last[0] = 0
+                        last[1] = 8
+                        reLoad()
+                        useDot()
+                    elif last[1] == 1:
+                        last[0] = 0
+                        last[1] = 9
+                        reLoad()
+                        useDot()
+                    elif last[1] == 2:
+                        last[0] = 1
+                        last[1] = 0
+                        reLoad()
+                        useDot()
+                    elif last[1] == 3:
+                        last[0] = 1
+                        last[1] = 1
+                        reLoad()
+                        useDot()
+                    elif last[1] == 4:
+                        last[0] = 1
+                        last[1] = 2
+                        reLoad()
+                        useDot()
+                elif last[0] == 1:
+                    if last[1] == 2:
+                        last[0] = 1
+                        last[1] = 2
+                        reLoad()
+                        useDot()
+                    elif last[1] == 3:
+                        last[0] = 0
+                        last[1] = 1
+                        reLoad()
+                        useDot()
+                    elif last[1] == 4:
+                        last[0] = 0
+                        last[1] = 2
+                        useDot()
+                    elif last[1] == 5:
+                        last[0] = 0
+                        last[1] = 3
+                        reLoad()
+                        useDot()
+                    elif last[1] == 6:
+                        last[0] = 0
+                        last[1] = 4
+                        reLoad()
+                        useDot()
+                    elif last[1] == 7:
+                        last[0] = 0
+                        last[1] = 5
+                        useDot()
+                    elif last[1] == 8:
+                        last[0] = 0
+                        last[1] = 6
+                        reLoad()
+                        useDot()
+                    elif last[1] == 9:
+                        last[0] = 0
+                        last[1] = 7
+                        reLoad()
+                        useDot()
+            elif position == 3 and (manValue == '0' or manValue == '1' or manValue == '2' or manValue == '3' or manValue == '4' or manValue == '5'):
+                loadDisplay(Clk3, manValue)
+                last[2] = int(manValue)
+                GPIO.output(LED, GPIO.LOW)
+            elif position == 4 and (manValue == '0' or manValue == '1' or manValue == '2' or manValue == '3' or manValue == '4' or manValue == '5' or manValue == '6' or manValue ==  '7' or manValue == '8' or manValue ==  '9'):   
+                loadDisplay(Clk4, manValue)
+                last[3] = int(manValue)
+                GPIO.output(LED, GPIO.LOW)
+            else:
+                GPIO.output(LED, GPIO.HIGH)
+        else:
+            if position == 1:
+                flash(Clk1)
+            elif position == 2:
+                flash(Clk2)
+            elif position == 3:
+                flash(Clk3)
+            elif position == 4:
+                flash(Clk4)
+            else:
+                while(not interrupt):
+                    manualTimer()
+                    if(interrupt):
+                        break
+                    increment()
+
+def useDot():
+    GPIO.output(Clk2, GPIO.LOW)
+    GPIO.output(DP, GPIO.HIGH)
+    GPIO.output(Clk2, GPIO.HIGH)
+    GPIO.output(DP, GPIO.LOW)
+    GPIO.output(Clk2, GPIO.LOW)
+    
+    
+startMode()
 while True:
-    GPIO.output([Clk1,Clk2,Clk3,Clk4], GPIO.LOW)
     value = read_keypad()
     print(value)
     if(value):
         print("reading")
-        
         # This runs the automatic clock
         if value == 'A':
-                runAutoClock()
-        else:
-            if position == 1:
-                loadDisplay(Clk1, value)
-                last[0] = value
-            elif position == 2:
-                loadDisplay(Clk2, value)
-                last[1] = value
-            elif position == 3:
-                loadDisplay(Clk3, value)
-                last[2] = value
-            elif position == 4:   
-                loadDisplay(Clk4, value)
-                last[3] = value
-    else:
-        if position == 1:
-            flash(Clk1)
-        elif position == 2:
-            flash(Clk2)
-        elif position == 3:
-            flash(Clk3)
-        elif position == 4:
-            flash(Clk4)
-        else:
-            manualTimer()
-            increment()
-    time.sleep(0.1)
+            runAutoClock()
+        elif value == 'B':
+            runManualClock()
+
+    

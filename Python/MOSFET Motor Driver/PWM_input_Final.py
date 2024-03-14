@@ -14,11 +14,32 @@ GPIO.setup(dt,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 
 #start time to track turns per second
 start = time.time()
-
+previousFreq = 0
+tps = 0
 
 #deobounce method
-def debounce():
-  time.sleep(.01)
+def debounce(input):
+ global start, previousFreq, tps
+    
+  # Calculate difference in time between start and currewnt time
+ time = time.time()
+ difference = time - start
+    
+  # shows change from last signal to help filter random noise
+ change = input - previousFreq
+    
+  # essentially creates a threshold to filter out some noise we encountered
+ if abs(change) > .1:
+      
+    tps = change / difference
+    print("Turns per second: ", tps)
+    # Update tps based on change of freqeuncy and difference in time
+    # Update previous values 
+    start = time
+    previousFreq = input
+    
+   #time.sleep for time based debounce
+ time.sleep(.01)
     
 
 #defining last state and intializing the counter
@@ -29,18 +50,18 @@ lastswState=GPIO.input(sw)
 
 #main loop to monitor encoder
 while True:
-  debounce()
+  
   direction = "none"
   #monitors gpio states
   clkState=GPIO.input(clk)
   dtState=GPIO.input(dt)
   swState=GPIO.input(sw)
+  debounce(clkState)
   #the condionals to monitor the states of clk dt and sw 
   if swState!=lastswState:
     if swState == False:
       print("Press")
       time.sleep(0.1)
-      debounce()
   if clkState!=lastClkState:
     if dtState!=clkState:
       counter+=1
@@ -50,8 +71,7 @@ while True:
       direction = "CounterClockwise"
     lastClkState=clkState
   
-  later = time.time()+1
-  turns = counter / (time.time()-start)
-  print("Direction: ", direction,"Counter: ", counter, "Turns per second", turns)
+ 
+  print("Direction: ", direction,"Counter: ", counter)
   
   

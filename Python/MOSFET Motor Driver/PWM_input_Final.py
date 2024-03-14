@@ -32,7 +32,7 @@ def debounce(input):
  if abs(change) > .2:
       
     tps = change / difference
-    print("Turns per second: ", tps)
+   # print("Turns per second: ", tps)
     # Update tps based on change of freqeuncy and difference in time
     # Update previous values 
     start = now
@@ -61,17 +61,19 @@ while True:
   if swState!=lastswState:
     if swState == False:
       print("Press")
-      time.sleep(0.1)
+      time.sleep(0.15)
   if clkState!=lastClkState:
     if dtState!=clkState:
       counter+=1
       direction = "Clockwise"
+      print("Direction: ", direction,"Counter: ", counter)
     else:
       counter-=1
       direction = "CounterClockwise"
+      print("Direction: ", direction,"Counter: ", counter)
     lastClkState=clkState
   
  
-  print("Direction: ", direction,"Counter: ", counter)
+  #print("Direction: ", direction,"Counter: ", counter)
   
   

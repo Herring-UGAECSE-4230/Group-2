@@ -22,20 +22,20 @@ def debounce(input):
  global start, previousFreq, tps
     
   # Calculate difference in time between start and currewnt time
- time = time.time()
- difference = time - start
+ now = time.time()
+ difference = abs(now - start)
     
   # shows change from last signal to help filter random noise
- change = input - previousFreq
+ change = abs(input - previousFreq)
     
   # essentially creates a threshold to filter out some noise we encountered
- if abs(change) > .1:
+ if abs(change) > .2:
       
     tps = change / difference
     print("Turns per second: ", tps)
     # Update tps based on change of freqeuncy and difference in time
     # Update previous values 
-    start = time
+    start = now
     previousFreq = input
     
    #time.sleep for time based debounce

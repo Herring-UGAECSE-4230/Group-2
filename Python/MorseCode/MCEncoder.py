@@ -48,19 +48,29 @@ def speaker_output(morse_code, unit_length):
         end_time = perf_counter()
         print(f"Duration: {end_time - start_time} seconds")  # Print the duration for verification
 
-# Function to obtain user input MC unit length
-def input():
-     f = open("demofile.txt", "r")
-     for x in f:
-         print(x)
-     f.close()
-
-# Function to encode the text file in English to MC and create file
+# Function to encode English input as MC output
 def encode():
-     
+    global morseOnly
+    mc = " "
+    morseOnly = " "
+    str(mc)
+    inputfile = open("input.txt", "r")
+    outputfile = open("output.txt", "a")
+    lines=[line for line in inputfile.readlines()]
+    for word in lines:
+        line = word.strip()
+        print(line)
+        for char in line:
+            print("in for loop")
+            morseOnly += str(MORSE_CODE_DICT[char]) + " "
+            mc += str(MORSE_CODE_DICT[char]) + " "
+        mc += ("| " + word + "\n")
+        print(mc)
+    outputfile.write(mc)
+    outputfile.close()
+    inputfile.close()
 
-def main():
-     
+encode()     
+print("Enter MC Unit Length: ")
+speaker_output(morseOnly, int(input()))
 
-while True:
-    main()

@@ -60,10 +60,13 @@ def encode():
     for word in lines:
         line = word.strip()
         print(line)
-        for char in line:
-            print("in for loop")
-            morseOnly += str(MORSE_CODE_DICT[char]) + " "
-            mc += str(MORSE_CODE_DICT[char]) + " "
+        if(line in MORSE_CODE_DICT):
+            mc += str(MORSE_CODE_DICT[line])
+        else:
+            for char in line:
+                print("in for loop")
+                morseOnly += str(MORSE_CODE_DICT[char]) + " "
+                mc += str(MORSE_CODE_DICT[char]) + " "
         mc += ("| " + word + "\n")
         print(mc)
     outputfile.write(mc)

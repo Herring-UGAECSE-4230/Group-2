@@ -21,7 +21,7 @@ tps = 0
 def debounce(input):
  global start, previousFreq, tps
     
-  # Calculate difference in time between start and currewnt time
+  # Calculate difference in time between start and current time
  now = time.time()
  difference = abs(now - start)
     

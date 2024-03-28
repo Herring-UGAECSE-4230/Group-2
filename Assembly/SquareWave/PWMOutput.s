@@ -20,7 +20,7 @@
 
 .section .bss
 
-.comm pwm_regs, 20            @ Space for PWM registers
+.lcomm pwm_regs, 4            @ Uninitialized space for PWM registers
 
 .section .text
 .globl _start
@@ -28,14 +28,12 @@
 _start:
     @ Map PWM peripheral
     ldr r0, =GPIO_BASE
-    ldr r1, =pwm_regs
     add r0, r0, #PWM_OFFSET
-    str r0, [r1]
+    ldr r0, =pwm_regs
 
     @ Set GPIO pin 18 as PWM output
     ldr r2, =GPIO_FSEL1
-    ldr r3, =pwm_regs
-    ldr r4, [r3]
+    ldr r4, =pwm_regs
     mov r5, #0x02    @ GPIO pin 18 is in the second nibble
     lsl r5, r5, #6   @ Shift 6 bits for pin 18
     str r5, [r4, r2]
@@ -79,7 +77,7 @@ loop:
     ldr r2, [r1]
     mov r3, #500    @ Set duty cycle to 50%
     str r3, [r2, r0]
-    mov r3, #10000  @ Delay for a short time (adjust as needed for frequency)
+    mov r3, #1000  @ Delay for a short time (adjust as needed for frequency)
 delay_loop:
     subs r3, r3, #1
     bne delay_loop
@@ -87,7 +85,7 @@ delay_loop:
     @ Invert PWM output
     mov r3, #0      @ Set duty cycle to 0%
     str r3, [r2, r0]
-    mov r3, #10000  @ Delay for a short time (adjust as needed for frequency)
+    mov r3, #1000  @ Delay for a short time (adjust as needed for frequency)
 delay_loop2:
     subs r3, r3, #1
     bne delay_loop2

@@ -105,28 +105,30 @@ calibrate()
 print("calibrated")
 while(True):
     if(GPIO.input(23) == 1):
-        start = float(time.time())
-        GPIO.output(25, 1)
+        on = float(time.time())
+        
         while(GPIO.input(23) == 1):
-           time.sleep(0.01)
+           GPIO.output(25, 1)
+           print("timing")
         GPIO.output(25, 0)
-        length = float(time.time()) - start
-        if(length<dot_length+dot_length*0.5):
+
+        onLength = float(time.time()) - on
+        if(onLength<dot_length+dot_length*0.5):
             morse = morse +"."
             print(morse)
         else:
             morse = morse + "-"
             print(morse)
     elif(GPIO.input == 0):
-        start = float(time.time())
+        off = float(time.time())
         while(GPIO.input(23) == 0):
-            time.sleep(0.01)
-        length = float(time.time()) - start
-        if(dot_length/2<length<dot_length+dot_length*0.5):
+            print("timing")
+        offLength = float(time.time()) - off
+        if(dot_length/2<offLength<dot_length+dot_length*0.5):
             #space between characters
             print("space between character")
 
-        elif(length>dot_length+dot_length*0.5):
+        elif(offLength>dot_length+dot_length*0.5):
             #space between words
             if(morse in MORSE_TO_LETTERS ):
                 word = MORSE_TO_LETTERS[morse]

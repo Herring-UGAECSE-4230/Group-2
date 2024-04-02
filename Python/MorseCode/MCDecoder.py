@@ -49,49 +49,52 @@ def calibrate():
             time.sleep(0.05)
             
             #only increments the count after it is released
-           
-            match count:
-                case 0:
-                    dash_start = float(time.time())
-                    time.sleep(0.01)
-                case 1:
-                    first_dash = float(time.time()) - dash_start
-                    time.sleep(0.01)
-                case 2:
-                    dot_start = float(time.time())
-                    time.sleep(0.01)
-                case 3:
-                    first_dot = float(time.time())- dot_start
-                    time.sleep(0.01)
-                case 4:
-                    dash_start = float(time.time())
-                    time.sleep(0.01)
-                case 5:
-                    second_dash = float(time.time()) - dash_start
-                    time.sleep(0.01)
-                case 6:
-                    dot_start = float(time.time())
-                    time.sleep(0.01)
-                case 7:
-                    second_dot = float(time.time()) - dot_start
-                    time.sleep(0.01)
-                case 8:
-                    dash_start = float(time.time())
-                    time.sleep(0.01)
-                case 9:
-                    third_dash = float(time.time())-dash_start
-                    time.sleep(0.01)
-                    calibrated = True
+ 
+            if(count == 0):
+                dash_start = float(time.time())
+                time.sleep(0.01)
+            elif(count == 1):
+                dot_start = float(time.time())
+                time.sleep(0.01)
+            elif(count == 2):
+                dash_start = float(time.time())
+                time.sleep(0.01)
+            elif(count == 3):
+                dot_start = float(time.time())
+                time.sleep(0.01)
+            
+            elif(count == 4):
+                dash_start = float(time.time())
+                time.sleep(0.01)
 
             #won't loop again until release  
             while(GPIO.input(23)==1):
                 print("in contact")
             #increment count
             count = count + 1
+        elif(GPIO.input(23) == 0):
+            time.sleep(0.05)
+            if(count == 1):
+                first_dash = float(time.time()) - dash_start
+                time.sleep(0.01)
+            elif(count == 2):
+                first_dot = float(time.time())- dot_start
+                time.sleep(0.01)
+            elif(count == 3):
+                second_dash = float(time.time()) - dash_start
+                time.sleep(0.01)
+            elif(count == 4):
+                second_dot = float(time.time()) - dot_start
+                time.sleep(0.01)
+            elif (count ==  5):
+                third_dash = float(time.time())-dash_start
+                time.sleep(0.01)
+                calibrated = True
 
     
     dash_length = (first_dash + second_dash + third_dash)/3
     dot_length = (first_dot+second_dot)/2  + (dash_length/3)/2
+    print(dot_length)
     # trying to calibrate the most accurate dot using all data possible
     
 

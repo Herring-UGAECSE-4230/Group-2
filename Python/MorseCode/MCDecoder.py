@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 import time
 from datetime import datetime
+import io
 
 # GPIO Setup
 GPIO.setmode(GPIO.BCM)
@@ -29,27 +30,55 @@ MORSE_TO_LETTERS = {
     '.-.-.':'out', '.----':'1', '-----':'0', '----.-':'9'
 }
 
-
-global dot_length, morse, decoded, word, calibrated
+# Globalizing and declaring variables
+global dot_length, morse, word, calibrated, spaceTrue
 dot_length = 0
 morse = ""
 word = ""
-decoded = ""
 calibrated = False
+spaceWord = False
+spaceChar = False
+threshold = 0.01
 
-#Attention
+# Encoding method from MC Encoder
+def encode():
+    global morseOnly
+    global word
+    mc = ""
+    str(mc)
+    inputfile = io.StringIO(word)
+    outputfile = open("output.txt", "w")
+    lines=[line for line in inputfile.readlines()]
+    for x in lines:
+        line = x.strip()
+        print(line)
+        print(x)
+        if(lines[x] == "attention"):
+            mc += "-.-.-"
+        elif(lines[x] == "over"):
+            mc += "-.-"
+        elif(lines[x] == "out"):
+            mc += ".-.-."
+        elif(line in MORSE_CODE_DICT):
+            mc += str(MORSE_CODE_DICT[line])
+        else:
+            for char in line:
+                mc += str(MORSE_CODE_DICT[char]) + " "
+        mc += ("| " + x + "\n")
+        print(mc)
+    outputfile.write(mc)
+    outputfile.close()
+    
+# Calibrating based on code word attention    
 def calibrate():
     global calibrated,dot_length
     count = 0
-    print ("Attention")
-    print("tap: -.-.-")
+    print("Tap: -.-.-")
     while(not calibrated):
-        print("not in contact")
         if(GPIO.input(23)==1):
             time.sleep(0.05)
             
-            #only increments the count after it is released
- 
+            # Only increments the count after it is released
             if(count == 0):
                 dash_start = float(time.time())
             elif(count == 1):
@@ -62,10 +91,10 @@ def calibrate():
             elif(count == 4):
                 dash_start = float(time.time())
 
-            #won't loop again until release  
+            # Won't loop again until release  
             while(GPIO.input(23)==1):
-                print("in contact")
-            #increment count
+                pass
+            # Increment count
             time.sleep(0.01)
             count = count + 1
         elif(GPIO.input(23) == 0):
@@ -83,36 +112,34 @@ def calibrate():
 
     
     dot_length = (first_dot+second_dot)/2  + ((first_dash + second_dash + third_dash)/9)/2
+    print("The unit dot length is: ")
     print(dot_length)
-   
-    # trying to calibrate the most accurate dot using all data possible
-    
+    # Trying to calibrate the most accurate dot using all data possible
 
-
-            
-
-
-
-    
 calibrate()
-print("calibrated")
+print("Calibrated")
 while(True):
+    spaceChar = False
+    spaceWord = False
     if(GPIO.input(23) == 1): # If a signal is detected we go into "on" mode
         on = float(time.time())
         while(GPIO.input(23) == 1): # While the tapper is held down, a timer is running
            GPIO.output(25, 1)
-           print("timing")
+           #print("timing")
         GPIO.output(25, 0)
 
         onLength = float(time.time()) - on # Timer for "on" state of tapper
         
-        if(onLength < dot_length*2): # If on length is less than 2 times unit length -> .
+        if(onLength < dot_length*2 and onLength > threshold): # If on length is less than 2 times unit length -> .
             morse = morse +"."
             print(onLength)
             print(morse)
-        else: # If on length is more than 2 times unit length -> -
+        elif(onLength > dot_length*2): # If on length is more than 2 times unit length -> -
             morse = morse + "-"
             print(morse)
+            
+        spaceWord = True
+        spaceChar = True
             
     elif(GPIO.input(23) == 0): # If a signal is not detected we go into "off mode"
         off = float(time.time())
@@ -123,12 +150,10 @@ while(True):
         
         # Conditionals to determine what is displaying
         if(offLength < dot_length*2): # If off time is less than 2 times unit length -> Morse code
-            print("Morse Code")
             time.sleep(0.01)
             
-        elif(dot_length*5 > offLength > dot_length*2): # If off time is between 2 times unit length and 5 times unit length -> Space between character
-            # Space between characters
-            print("Space between CHARACTER")
+            
+        elif((dot_length*5 > offLength) and (offLength>dot_length*2) and spaceChar): # If off time is less than 5 times unit length and greater than 2 times unit length -> Space between characters
             time.sleep(0.01)
             
             if(morse in MORSE_TO_LETTERS):
@@ -136,25 +161,33 @@ while(True):
                 word = word + character
                 morse = ""
                 print(word)
+                if (character == "out"):
+                    break
+            elif(len(morse) > 0):
+                word = word + "?"
+                morse = ""
+            spaceChar = False
                 
-        elif(offLength > dot_length*5): # If off time is greater than 5 times the unit length -> Space between word
+        elif(offLength > dot_length*5 and spaceWord): # If off time is greater than 5 times the unit length -> Space between word
             # Space between words
-            print("Space between WORD")
+            word = word + " "
+            time.sleep(0.01)
+            spaceWord = False
+            
+        elif(offLength > dot_length*5):
+            # Nothing is happening and it's been too damn long
             time.sleep(0.01)
             if(morse in MORSE_TO_LETTERS):
-                word = MORSE_TO_LETTERS[morse]
+                character = MORSE_TO_LETTERS[morse]
+                word = word + character + " "
                 morse = ""
-                decoded = word + " "
-                print(decoded)
-                if (word == "out"):
+                print(word)
+                if (character == "out"):
+                    encode()
                     break
-                else:
-                    word = ""
+                    
+            elif(len(morse) > 0):
+                word = word + "?"
+                morse = ""
+            spaceChar = False
 
-outputfile = open("output.txt", "a")
-outputfile.write(decoded)
-outputfile.close()
-                
-
-
-        

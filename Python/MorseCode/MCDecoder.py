@@ -45,6 +45,7 @@ threshold = 0.01
 def encode():
     global morseOnly
     global word
+    #opens the output file
     outputfile = open("output.txt", "w")
     mc = ""
     mc = str(mc)
@@ -52,8 +53,9 @@ def encode():
     word_array = word.split("\n")
     print(word_array)
     
+    #Loops thorugh the words array and writes to the text file
     for x in word_array:
-        
+        #checks key words and else for normal morse
         if(x == "attention"):
             mc += "-.-.-"
         elif(x  == "over"):
@@ -67,6 +69,7 @@ def encode():
         mc += ("| " +  x + "\n")
     mc = mc[0:len(mc)-4]
     print(mc)
+    #writes to output file
     outputfile.write(mc)
     outputfile.close()
     
@@ -81,6 +84,7 @@ def calibrate():
             time.sleep(0.05)
             
             # Only increments the count after it is released
+            # Measures on time to size the length of a unit
             if(count == 0):
                 dash_start = float(time.time())
             elif(count == 1):
@@ -92,27 +96,31 @@ def calibrate():
             elif(count == 4):
                 dash_start = float(time.time())
 
-            # Won't loop again until release  
+            #Won't loop again until release  
             while(GPIO.input(23)==1):
                 pass
-            # Increment count
+            #Increment count
             time.sleep(0.01)
             count = count + 1
         elif(GPIO.input(23) == 0):
             pwm.stop()
+            #Calculates the on time from taking the measure time and subtracts from current time
             if(count == 1):
                 first_dash = float(time.time()) - dash_start
             elif(count == 2):
-                first_dot = float(time.time())- dot_start
+                first_dot = float(time.time()) - dot_start
             elif(count == 3):
                 second_dash = float(time.time()) - dash_start
             elif(count == 4):
                 second_dot = float(time.time()) - dot_start
             elif (count ==  5):
-                third_dash = float(time.time())-dash_start
+                third_dash = float(time.time()) - dash_start
                 calibrated = True
 
+
     word = word + "attention" + "\n"
+
+    #Determines dot legnth from dashes because most dots are just taps but dashes are more accurate since it is longer
     dot_length = (first_dash + second_dash + third_dash)/9
     print("The unit dot length is: ")
     print(dot_length)
@@ -160,6 +168,7 @@ while(True):
         elif((dot_length*6 > offLength) and (offLength>dot_length*2)): # If off time is less than 5 times unit length and greater than 2 times unit length -> Space between characters
             time.sleep(0.01)
             
+            #checks morse character if it isnt in there then "?"
             if(morse in MORSE_TO_LETTERS):
                 character = MORSE_TO_LETTERS[morse]
                 word = word + character
@@ -177,6 +186,7 @@ while(True):
             # Space between words
             time.sleep(0.01)
             spaceWord = False
+            #checks morse character if it isnt in there then "?"
             if(morse in MORSE_TO_LETTERS):
                 character = MORSE_TO_LETTERS[morse]
                 word = word + character + "\n"
@@ -185,7 +195,7 @@ while(True):
                 if (character == "out"):
                     encode()
                     break
-                    
+            #makes sure there is something in morse before throwing a question mark       
             elif(len(morse) > 0):
                 word = word + "?" + "\n"
                 morse = ""

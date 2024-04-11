@@ -11,7 +11,7 @@ GPIO.setwarnings(False)
 GPIO.setup(23, GPIO.IN)
 GPIO.setup(25, GPIO.OUT)
 
-# Morse code mapping
+# English to morse code mapping
 MORSE_CODE_DICT = {
     'a': '.-', 'b': '-...', 'c': '-.-.', 'd': '-..', 'e': '.', 'f': '..-.', 
     'g': '--.', 'h': '....', 'i': '..', 'j': '.---', 'k': '-.-', 'l': '.-..', 
@@ -21,6 +21,7 @@ MORSE_CODE_DICT = {
     'out': '.-.-.', '1': '.----', '0':'-----', '9': '----.-', "sos": "...---...", "?":"?"
 }
 
+# Morse code to English mapping
 MORSE_TO_LETTERS = {
     '.-':'a', '-...':'b', '-.-.':'c', '-..':'d', '.':'e', '..-.':'f', 
     '--.':'g', '....':'h', '..':'i', '.---':'j', '-.-':'k', '.-..':'l', 
@@ -52,7 +53,6 @@ def encode():
     print(word_array)
     
     for x in word_array:
-        #x_stripped = x.strip()
         
         if(x == "attention"):
             mc += "-.-.-"
@@ -125,7 +125,7 @@ while(True):
         on = float(time.time())
         while(GPIO.input(23) == 1): # While the tapper is held down, a timer is running
            GPIO.output(25, 1)
-           #print("timing")
+
         GPIO.output(25, 0)
 
         onLength = float(time.time()) - on # Timer for "on" state of tapper
@@ -168,14 +168,9 @@ while(True):
                 morse = ""
             spaceChar = False
                 
-        #elif(offLength > dot_length*5 and spaceWord): # If off time is greater than 5 times the unit length -> Space between word
-            # Space between words
-         #   word = word + "\n"
-          #  time.sleep(0.01)
-           # spaceWord = False
             
         elif(offLength > dot_length*6):
-            # Nothing is happening and it's been too damn long
+            # Space between words
             time.sleep(0.01)
             spaceWord = False
             if(morse in MORSE_TO_LETTERS):

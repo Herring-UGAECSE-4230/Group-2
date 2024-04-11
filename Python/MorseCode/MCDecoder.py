@@ -10,7 +10,7 @@ GPIO.setwarnings(False)
 # GPIO Setup
 GPIO.setup(23, GPIO.IN)
 GPIO.setup(25, GPIO.OUT)
-
+pwm = GPIO.PWM(25,500)
 # English to morse code mapping
 MORSE_CODE_DICT = {
     'a': '.-', 'b': '-...', 'c': '-.-.', 'd': '-..', 'e': '.', 'f': '..-.', 
@@ -77,6 +77,7 @@ def calibrate():
     print("Tap: -.-.-")
     while(not calibrated):
         if(GPIO.input(23)==1):
+            pwm.start(50)
             time.sleep(0.05)
             
             # Only increments the count after it is released
@@ -98,6 +99,7 @@ def calibrate():
             time.sleep(0.01)
             count = count + 1
         elif(GPIO.input(23) == 0):
+            pwm.stop()
             if(count == 1):
                 first_dash = float(time.time()) - dash_start
             elif(count == 2):
@@ -122,9 +124,10 @@ while(True):
     spaceChar = False
     spaceWord = False
     if(GPIO.input(23) == 1): # If a signal is detected we go into "on" mode
+        
         on = float(time.time())
         while(GPIO.input(23) == 1): # While the tapper is held down, a timer is running
-           GPIO.output(25, 1)
+           pwm.start(50)
 
         GPIO.output(25, 0)
 
@@ -142,6 +145,7 @@ while(True):
         spaceChar = True
             
     elif(GPIO.input(23) == 0): # If a signal is not detected we go into "off mode"
+        pwm.stop()
         off = float(time.time())
         while(GPIO.input(23) == 0): 
             GPIO.output(25, 0)
@@ -183,7 +187,7 @@ while(True):
                     break
                     
             elif(len(morse) > 0):
-                word = word + "?"
+                word = word + "?" + "\n"
                 morse = ""
             spaceChar = False
 

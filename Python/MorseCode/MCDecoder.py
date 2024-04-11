@@ -18,7 +18,7 @@ MORSE_CODE_DICT = {
     'm': '--', 'n': '-.', 'o': '---', 'p': '.--.', 'q': '--.-', 'r': '.-.', 
     's': '...', 't': '-', 'u': '..-', 'v': '...-', 'w': '.--', 'x': '-..-', 
     'y': '-.--', 'z': '--..', ' ': ' ', 'attention': '-.-.-', 'over': '-.-',
-    'out': '.-.-.', '1': '.----', '0':'-----', '9': '----.-'
+    'out': '.-.-.', '1': '.----', '0':'-----', '9': '----.-', "sos": "...---...", "?":"?"
 }
 
 MORSE_TO_LETTERS = {
@@ -27,7 +27,7 @@ MORSE_TO_LETTERS = {
     '--':'m', '-.':'n', '---':'o', '.--.':'p', '--.-':'q', '.-.':'r', 
     '...':'s' , '-':'t', '..-':'u', '...-':'v', '.--':'w', '-..-':'x', 
     '-.--':'y', '--..':'z', ' ': ' ', '-.-.-':'attention',  '-.-':'over',
-    '.-.-.':'out', '.----':'1', '-----':'0', '----.-':'9'
+    '.-.-.':'out', '.----':'1', '-----':'0', '----.-':'9', "...---...": "sos", "?":"?"
 }
 
 # Globalizing and declaring variables
@@ -44,34 +44,35 @@ threshold = 0.01
 def encode():
     global morseOnly
     global word
-    mc = ""
-    str(mc)
-    inputfile = io.StringIO(word)
     outputfile = open("output.txt", "w")
-    lines=[line for line in inputfile.readlines()]
-    for x in lines:
-        line = x.strip()
-        print(line)
-        print(x)
-        if(lines[x] == "attention"):
+    mc = ""
+    mc = str(mc)
+    print(word)
+    word_array = word.split("\n")
+    print(word_array)
+    
+    for x in word_array:
+        #x_stripped = x.strip()
+        
+        if(x == "attention"):
             mc += "-.-.-"
-        elif(lines[x] == "over"):
+        elif(x  == "over"):
             mc += "-.-"
-        elif(lines[x] == "out"):
+        elif(x  == "out"):
             mc += ".-.-."
-        elif(line in MORSE_CODE_DICT):
-            mc += str(MORSE_CODE_DICT[line])
         else:
-            for char in line:
+            for char in x:
+                print(char)
                 mc += str(MORSE_CODE_DICT[char]) + " "
-        mc += ("| " + x + "\n")
-        print(mc)
+        mc += ("| " +  x + "\n")
+    mc = mc[0:len(mc)-4]
+    print(mc)
     outputfile.write(mc)
     outputfile.close()
     
 # Calibrating based on code word attention    
 def calibrate():
-    global calibrated,dot_length
+    global calibrated,dot_length,word 
     count = 0
     print("Tap: -.-.-")
     while(not calibrated):
@@ -87,7 +88,6 @@ def calibrate():
                 dash_start = float(time.time())
             elif(count == 3):
                 dot_start = float(time.time())
-            
             elif(count == 4):
                 dash_start = float(time.time())
 
@@ -110,8 +110,8 @@ def calibrate():
                 third_dash = float(time.time())-dash_start
                 calibrated = True
 
-    
-    dot_length = (first_dot+second_dot)/2  + ((first_dash + second_dash + third_dash)/9)/2
+    word = word + "attention" + "\n"
+    dot_length = (first_dash + second_dash + third_dash)/9
     print("The unit dot length is: ")
     print(dot_length)
     # Trying to calibrate the most accurate dot using all data possible
@@ -153,7 +153,7 @@ while(True):
             time.sleep(0.01)
             
             
-        elif((dot_length*5 > offLength) and (offLength>dot_length*2) and spaceChar): # If off time is less than 5 times unit length and greater than 2 times unit length -> Space between characters
+        elif((dot_length*6 > offLength) and (offLength>dot_length*2)): # If off time is less than 5 times unit length and greater than 2 times unit length -> Space between characters
             time.sleep(0.01)
             
             if(morse in MORSE_TO_LETTERS):
@@ -168,18 +168,19 @@ while(True):
                 morse = ""
             spaceChar = False
                 
-        elif(offLength > dot_length*5 and spaceWord): # If off time is greater than 5 times the unit length -> Space between word
+        #elif(offLength > dot_length*5 and spaceWord): # If off time is greater than 5 times the unit length -> Space between word
             # Space between words
-            word = word + " "
-            time.sleep(0.01)
-            spaceWord = False
+         #   word = word + "\n"
+          #  time.sleep(0.01)
+           # spaceWord = False
             
-        elif(offLength > dot_length*5):
+        elif(offLength > dot_length*6):
             # Nothing is happening and it's been too damn long
             time.sleep(0.01)
+            spaceWord = False
             if(morse in MORSE_TO_LETTERS):
                 character = MORSE_TO_LETTERS[morse]
-                word = word + character + " "
+                word = word + character + "\n"
                 morse = ""
                 print(word)
                 if (character == "out"):

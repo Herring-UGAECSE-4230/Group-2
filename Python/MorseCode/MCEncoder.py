@@ -51,27 +51,32 @@ def speaker_output(morse_code, unit_length):
 # Function to encode English input as MC output
 def encode():
     global morseOnly
-    mc = " "
-    morseOnly = " "
+    global word
+    mc = ""
     str(mc)
-    inputfile = open("input.txt", "r")
-    outputfile = open("output.txt", "a")
+    inputfile = io.StringIO(word)
+    outputfile = open("output.txt", "w")
     lines=[line for line in inputfile.readlines()]
-    for word in lines:
-        line = word.strip()
-        print(line)
-        if(line in MORSE_CODE_DICT):
-            mc += str(MORSE_CODE_DICT[line])
+    #line = x.strip()
+    word_array = lines.split(" ")
+    print("line = ", line)
+    print("x = ",x)
+   
+    for x in word_array:
+        
+        if(word_array[x] == "attention"):
+            mc += "-.-.-"
+        elif(word_array[x]  == "over"):
+            mc += "-.-"
+        elif(word_array[x]  == "out"):
+            mc += ".-.-."
         else:
             for char in line:
-                print("in for loop")
-                morseOnly += str(MORSE_CODE_DICT[char]) + " "
                 mc += str(MORSE_CODE_DICT[char]) + " "
-        mc += ("| " + word + "\n")
-        print(mc)
+        mc += ("| " + word_array[x] + "\n")
+    print(mc)
     outputfile.write(mc)
     outputfile.close()
-    inputfile.close()
 
 encode()     
 print("Enter MC Unit Length: ")

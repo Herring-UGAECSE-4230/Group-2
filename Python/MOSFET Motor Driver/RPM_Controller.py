@@ -1,27 +1,27 @@
 import RPi.GPIO as GPIO
 import time
 from datetime import datetime
-
+import math
 # GPIO Setup
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
-# Setting frequency and duty cycle
-freq = 0
-duty = 50
-
+# Setting duty cycle
+duty = 18
+freq = 500
 # Defining RPM
 global RPM
 RPM = 0
-
+DesiredRPM = 850
 # Setting GPIO pins
 clk =22
 dt = 27
 sw = 17
 ir = 23
-
+previousFreq = 0
 # Setting PWM and pin setup
-motor = GPIO.PWM(18,freq)
+GPIO.setup(18, GPIO.OUT)
+motor = GPIO.PWM(18, freq)
 GPIO.setup([clk,dt,sw,ir], GPIO.IN)
 
 # Allowing for dt and clk to have an internal pull up
@@ -31,9 +31,13 @@ GPIO.setup(dt,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 # Tracks amount of switch press used to turn off and on the PWM later in code
 pressCount = 0
 
+# Setup and initialize variables
+start = time.time()
+
+
 # Debounce method
 def debounce(input):
- global start, previousFreq, tps
+ global start, previousFreq
     
   # Calculate difference in time between start and current time
  now = time.time()
@@ -45,23 +49,28 @@ def debounce(input):
   # Essentially creates a threshold to filter out some noise we encountered
  if (abs(change) > 0.2):
       
-    tps = change / difference
+
    # Print("Turns per second: ", tps)
     # Update tps based on change of freqeuncy and difference in time
     # Update previous values 
     start = now
     previousFreq = input
     
-   # Sleep for time based debounce
- time.sleep(0.01)
+ 
+ 
     
 def countSpins():
     global RPM
     irCounter = 0
+    
     start = float(time.time())
     blocked = False
 
-    while(irCounter < 3):
+    while(irCounter < 4):
+      end = time.time()
+      if((end - start) > 0.1):
+        RPM = 0
+        return
       if(GPIO.input(ir) == 1 and (not blocked)):
         irCounter += 1
         blocked = True
@@ -70,7 +79,7 @@ def countSpins():
     
     done = float(time.time()) - start
 
-    RPM = 20/done
+    RPM = 16*3.14/done
         
     
 # Defining last state
@@ -80,7 +89,10 @@ lastswState = GPIO.input(sw)
 
 # Main loop to monitor encoder
 while True:
-  
+
+    
+  print("Desired RPM: ", DesiredRPM, " RPM: ", RPM)
+  print("Duty: ", duty)
   direction = "None"
   # Monitors GPIO states
   clkState = GPIO.input(clk)
@@ -101,16 +113,21 @@ while True:
       time.sleep(0.15)
   if (clkState != lastClkState):
     if (dtState != clkState):
-      freq += 25
-      motor.ChangeFrequency(freq)
-      direction = "Clockwise"
-      countSpins()
-      print("Desired Freq: ", freq, " RPM: ", RPM)
-    else:
-      if(freq > 1):
-        freq -= 25
-        motor.ChangeFrequency(freq)
-        direction = "CounterClockwise"
+      if(DesiredRPM<2525):
+        DesiredRPM += 25
+        duty = math.exp((DesiredRPM + 2165.539) / 1022.3302)
+        motor.start(duty)
         countSpins()
-        print("Desired Freq: ", freq, " RPM: ", RPM)
+        print("Desired RPM: ", DesiredRPM, " RPM: ", RPM)
+        print("Duty: ", duty)
+      
+    else:
+      if(duty > 18):
+        DesiredRPM -= 25
+        duty = duty = math.exp((DesiredRPM + 2165.539) / 1022.3302)
+        motor.start(duty)
+        countSpins()
+        print("Desired RPM: ", DesiredRPM, " RPM: ", RPM)
+        print("Duty: ", duty)
     lastClkState=clkState
+    

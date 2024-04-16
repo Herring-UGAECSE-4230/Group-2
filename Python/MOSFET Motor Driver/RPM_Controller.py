@@ -21,14 +21,14 @@ sw = 17
 ir = 23
 
 # Setting PWM and pin setup
-pwm = GPIO.PWM(18,freq)
+motor = GPIO.PWM(18,freq)
 GPIO.setup([clk,dt,sw,ir], GPIO.IN)
 
 # Allowing for dt and clk to have an internal pull up
 GPIO.setup(clk,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 GPIO.setup(dt,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 
-# Tracks amount of switch press used to turn off and on the pwm later in code
+# Tracks amount of switch press used to turn off and on the PWM later in code
 pressCount = 0
 
 # Debounce method
@@ -93,23 +93,23 @@ while True:
       print("Press")
       
       if(pressCount % 2 == 0):
-        pwm.start(duty)
+        motor.start(duty)
       else:
-        pwm.stop()
+        motor.stop()
 
       pressCount += 1
       time.sleep(0.15)
   if (clkState != lastClkState):
     if (dtState != clkState):
       freq += 25
-      pwm.ChangeFrequency(freq)
+      motor.ChangeFrequency(freq)
       direction = "Clockwise"
       countSpins()
       print("Desired Freq: ", freq, " RPM: ", RPM)
     else:
       if(freq > 1):
         freq -= 25
-        pwm.ChangeFrequency(freq)
+        motor.ChangeFrequency(freq)
         direction = "CounterClockwise"
         countSpins()
         print("Desired Freq: ", freq, " RPM: ", RPM)

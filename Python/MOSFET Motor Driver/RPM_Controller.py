@@ -9,9 +9,11 @@ GPIO.setmode(GPIO.BCM)
 # Setting duty cycle
 duty = 18
 freq = 500
+
 # Defining RPM
 global RPM
 RPM = 0
+
 DesiredRPM = 850
 # Setting GPIO pins
 clk =22
@@ -19,8 +21,11 @@ dt = 27
 sw = 17
 ir = 23
 previousFreq = 0
+inputPin = 24
+
 # Setting PWM and pin setup
 GPIO.setup(18, GPIO.OUT)
+GPIO.setup(inputPin, GPIO.IN)
 motor = GPIO.PWM(18, freq)
 GPIO.setup([clk,dt,sw,ir], GPIO.IN)
 
@@ -30,6 +35,7 @@ GPIO.setup(dt,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 
 # Tracks amount of switch press used to turn off and on the PWM later in code
 pressCount = 0
+on = False
 
 # Setup and initialize variables
 start = time.time()
@@ -80,17 +86,18 @@ def countSpins():
     done = float(time.time()) - start
 
     RPM = 16*3.14/done
-        
-    
+
 # Defining last state
 lastClkState = GPIO.input(clk)
 lastswState = GPIO.input(sw)
-
+optoTime = time.time()
 
 # Main loop to monitor encoder
 while True:
-
-    
+  if(GPIO.input(inputPin)):
+    optoTime = time.time()
+  if(time.time() > optoTime + 1 and pressCount > 0):
+    RPM = 0
   print("Desired RPM: ", DesiredRPM, " RPM: ", RPM)
   print("Duty: ", duty)
   direction = "None"
@@ -103,17 +110,19 @@ while True:
   if (swState != lastswState):
     if swState == False:
       print("Press")
-      
+      on = True
+      countSpins()
       if(pressCount % 2 == 0):
         motor.start(duty)
+        
       else:
         motor.stop()
-
+        on = False
       pressCount += 1
-      time.sleep(0.15)
+      time.sleep(0.2)
   if (clkState != lastClkState):
     if (dtState != clkState):
-      if(DesiredRPM<2525):
+      if(DesiredRPM<2525 and on):
         DesiredRPM += 25
         duty = math.exp((DesiredRPM + 2165.539) / 1022.3302)
         motor.start(duty)
@@ -122,9 +131,9 @@ while True:
         print("Duty: ", duty)
       
     else:
-      if(duty > 18):
+      if(duty > 18 and on):
         DesiredRPM -= 25
-        duty = duty = math.exp((DesiredRPM + 2165.539) / 1022.3302)
+        duty = math.exp((DesiredRPM + 2165.539) / 1022.3302)
         motor.start(duty)
         countSpins()
         print("Desired RPM: ", DesiredRPM, " RPM: ", RPM)

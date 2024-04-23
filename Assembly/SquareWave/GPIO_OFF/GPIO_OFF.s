@@ -1,5 +1,3 @@
-@ mmap part taken from by https://bob.cs.sonoma.edu/IntroCompOrg-RPi/sec-gpio-mem.html
-
 @ Constants for blink at GPIO21
 @ GPFSEL2 [Offset: 0x08] responsible for GPIO Pins 20 to 29
 @ GPCLR0 [Offset: 0x28] responsible for GPIO Pins 0 to 31
@@ -12,6 +10,7 @@
 .equ    GPFSEL2_GPIO21_MASK, 0b111000000   @ Mask for fn register
 .equ    MAKE_GPIO21_OUTPUT, 0b001000000      @ use pin for ouput
 .equ    PIN, 22                         @ Used to set PIN high / low
+
 
 @ Args for mmap
 .equ    OFFSET_FILE_DESCRP, 0   @ file descriptor

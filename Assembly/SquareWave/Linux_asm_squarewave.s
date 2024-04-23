@@ -25,8 +25,7 @@
 .equ    MAP_SHARED,1    @ share changes with other processes
 .equ    PROT_RDWR,0x3   @ PROT_READ(0x1)|PROT_WRITE(0x2)
 
-@Delay variable
-MOV     R1, #1000000     @ delay value
+
 
 @ Constant program data
     .section .rodata
@@ -47,6 +46,7 @@ main:
 @ Map the GPIO registers to a main memory location so we can access them
 @ mmap(addr[r0], length[r1], protection[r2], flags[r3], fd[r4])
     str     r4, [sp, #OFFSET_FILE_DESCRP]   @ r4=/dev/gpiomem file descriptor
+    mov     r6, #1000 @delay value
     mov     r1, #BLOCK_SIZE                 @ r1=get 1 page of memory
     mov     r2, #PROT_RDWR                  @ r2=read/write this memory
     mov     r3, #MAP_SHARED                 @ r3=share with other processes
@@ -89,9 +89,9 @@ OFF:
 
 
 DELAY:
-    SUBS    R1, R1, #1       
-    BNE     loop             @ Loop until R1 becomes zero
-    BX      LR               @ Return to the function
+    subs    r6, r6, #1       
+    bne     DELAY             @ Loop until R1 becomes zero
+    bx      lr               @ Return to the function
 
 GPIO_BASE:
     .word   0xfe200000  @GPIO Base address Raspberry pi 4

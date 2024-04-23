@@ -1,14 +1,23 @@
-OBJS = Linux_asm_squarewave.o
+#Program name
+PROG = Linux_asm_squarewave
+
+OBJS = ${PROG}.o
+
+DEBUG = 1
+
 ifdef DEBUG
 DEBUGFLGS = -g
+
 else
 DEBUGFLGS =
 endif
 
+# The % is a wildcard.  For below, reads as for all .s files and create a .0 file with DEBUGFLGS output
 %.o : %.s
 	as $(DEBUGFLGS) $< -o $@
-GPIO_ON: $(OBJS)
-	gcc -o Linux_asm_squarewave $(OBJS)
+${PROG}: $(OBJS)
+	ld -o ${PROG} $(OBJS)
 
-clean:
-	rm *.o Linux_asm_squarewave
+#cleanup
+clean: $(OBJS)
+	rm *.o ${PROG}

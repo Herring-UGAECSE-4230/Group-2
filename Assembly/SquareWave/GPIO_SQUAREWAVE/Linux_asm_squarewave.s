@@ -46,7 +46,7 @@ main:
 @ Map the GPIO registers to a main memory location so we can access them
 @ mmap(addr[r0], length[r1], protection[r2], flags[r3], fd[r4])
     str     r4, [sp, #OFFSET_FILE_DESCRP]   @ r4=/dev/gpiomem file descriptor
-    mov     r6, #1000 @delay value
+    mov     r6, #0xC90000 @delay value
     mov     r1, #BLOCK_SIZE                 @ r1=get 1 page of memory
     mov     r2, #PROT_RDWR                  @ r2=read/write this memory
     mov     r3, #MAP_SHARED                 @ r3=share with other processes
@@ -72,7 +72,7 @@ ON:
     lsl     r3, r3, #PIN    @ shift bit to pin position
     orr     r2, r2, r3      @ set bit
     str     r2, [r0]        @ update register
-    b DELAY
+    bl DELAY
     b OFF
 
 OFF:
@@ -83,7 +83,7 @@ OFF:
     lsl     r3, r3, #PIN    @ shift bit to pin position
     orr     r2, r2, r3      @ set bit
     str     r2, [r0]        @ update register
-    b DELAY
+    bl 	    DELAY
     b       ON
 
 
@@ -91,7 +91,8 @@ OFF:
 DELAY:
     subs    r6, r6, #1       
     bne     DELAY             @ Loop until R1 becomes zero
-    bx      lr               @ Return to the function
+    mov     r6, #0xC90000
+    bx      lr               @ Return to call
 
 GPIO_BASE:
     .word   0xfe200000  @GPIO Base address Raspberry pi 4

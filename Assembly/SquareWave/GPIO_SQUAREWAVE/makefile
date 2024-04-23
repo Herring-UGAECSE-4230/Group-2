@@ -8,7 +8,7 @@ endif
 %.o : %.s
 	as $(DEBUGFLGS) $< -o $@
 GPIO_OFF: $(OBJS)
-	gcc -o GPIO_OFF $(OBJS)
+	gcc -o SquareWave $(OBJS)
 
 clean:
-	rm *.o GPIO_OFF
+	rm *.o SquareWave

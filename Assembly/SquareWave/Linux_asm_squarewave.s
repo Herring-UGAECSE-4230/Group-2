@@ -8,7 +8,7 @@
 .equ    GPFSEL2, 0x08   @ function register offset
 .equ    GPCLR0, 0x28    @ clear register offset
 .equ    GPSET0, 0x1c    @ set register offset
-.equ    GPFSEL2_GPIO21_MASK, 0b111000000   @ Mask for fn register for gpio 23
+.equ    GPFSEL2_GPIO21_MASK, 0b111000000   @ Mask for fn register for gpio 22
 .equ    MAKE_GPIO21_OUTPUT, 0b001000000      @ use pin for ouput
 .equ    PIN, 22                         @ Used to set PIN high / low
 

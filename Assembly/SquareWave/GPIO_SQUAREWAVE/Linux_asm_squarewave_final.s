@@ -25,7 +25,11 @@
 .equ    MAP_SHARED,1    @ share changes with other processes
 .equ    PROT_RDWR,0x3   @ PROT_READ(0x1)|PROT_WRITE(0x2)
 
-
+@ On time and off time variables
+ON_TIME:
+    .word 0x37CD
+OFF_TIME:
+    .word 0x37CD
 
 @ Constant program data
     .section .rodata
@@ -46,7 +50,8 @@ main:
 @ Map the GPIO registers to a main memory location so we can access them
 @ mmap(addr[r0], length[r1], protection[r2], flags[r3], fd[r4])
     str     r4, [sp, #OFFSET_FILE_DESCRP]   @ r4=/dev/gpiomem file descriptor
-    mov     r6, #0xC90000 @delay value
+    ldr     r6, #ON_TIME  @delay value
+    ldr     r7, #OFF_TIME
     mov     r1, #BLOCK_SIZE                 @ r1=get 1 page of memory
     mov     r2, #PROT_RDWR                  @ r2=read/write this memory
     mov     r3, #MAP_SHARED                 @ r3=share with other processes
@@ -72,7 +77,7 @@ ON:
     lsl     r3, r3, #PIN    @ shift bit to pin position
     orr     r2, r2, r3      @ set bit
     str     r2, [r0]        @ update register
-    bl DELAY
+    bl DELAY_ON
     b OFF
 
 OFF:
@@ -83,16 +88,20 @@ OFF:
     lsl     r3, r3, #PIN    @ shift bit to pin position
     orr     r2, r2, r3      @ set bit
     str     r2, [r0]        @ update register
-    bl 	    DELAY
+    bl 	    DELAY_OFF
     b       ON
 
-
-
-DELAY:
+DELAY_ON:
     subs    r6, r6, #1       
-    bne     DELAY             @ Loop until R1 becomes zero
-    mov     r6, #0xC90000
+    bne     DELAY_ON             @ Loop until R1 becomes zero
+    ldr     r6, #ON_TIME
     bx      lr               @ Return to call
+
+DELAY_OFF: 
+    subs    r7, r7, #1
+    bne     DELAY_OFF		 @ Loop until R7 becomes zero
+    ldr     r7, #OFF_TIME
+    bx      lr              @ Return to call
 
 GPIO_BASE:
     .word   0xfe200000  @GPIO Base address Raspberry pi 4

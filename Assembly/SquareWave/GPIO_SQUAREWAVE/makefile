@@ -1,4 +1,4 @@
-OBJS = Linux_asm_squarewave.o
+OBJS = Linux_asm_squarewave_final.o
 ifdef DEBUG
 DEBUGFLGS = -g
 else
